@@ -1,14 +1,21 @@
 # AppGoFast
 
-## To setup and run:
+## To set up and run:
 
 1. Make a Python virtual environment with ```python -m venv venv```
 
-1. Enter the venv:
+2. Enter the venv:
 
-    * Linux and macOS: ```source venv/bin/activate```
-    * Windows: ```venv\Scripts\activate```
+   * Linux and macOS: ```source venv/bin/activate```
+   * Windows: ```venv\Scripts\activate```
 
-1. Install the requirements: ```pip install -r requirements.txt```
+3. Install the requirements:
+   * Linux and macOS: ```pip install -r requirements.txt```
+   * Windows: ```python -m pip install -r requirements.txt```
 
-1. Run it with: ```python AppGoFast.py```
+4. Download **dotTrace Command Line Tools (v2025.3.3)** from:
+   https://www.jetbrains.com/profiler/download/other/
+   
+   Then extract the downloaded ZIP file.
+
+5. Run it with: ```python AppGoFast.py```
