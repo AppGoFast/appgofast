@@ -1,7 +1,13 @@
 import subprocess
 import sys
+from pathlib import Path
 import customtkinter
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
+
+PROFILER_DIR = Path(__file__).resolve().parent / "profiler-processing"
+sys.path.insert(0, str(PROFILER_DIR))
+
+from analyze_callstack import process_snapshot  # type: ignore[import-not-found]
 
 
 class App(customtkinter.CTk):
@@ -43,8 +49,16 @@ def select_file():
         path = filedialog.askopenfilename()
 
     if path:
-        print(path)
-        file_label.configure(text=path)
+        file_label.configure(text=f"Processing:\n{path}")
+        app.update_idletasks()
+        try:
+            output_json = Path(path).with_name("ai_input.json")
+            result_path = process_snapshot(path, output_json_path=output_json)
+            file_label.configure(text=f"Done:\n{result_path}")
+            messagebox.showinfo("AppGoFast", f"Analysis complete.\nOutput: {result_path}")
+        except Exception as exc:
+            file_label.configure(text=f"Failed:\n{path}")
+            messagebox.showerror("AppGoFast", f"Analysis failed:\n{exc}")
 
 
 app = App()

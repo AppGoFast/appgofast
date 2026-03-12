@@ -1,27 +1,33 @@
 import subprocess
 from pathlib import Path
 
-REPORTER_PATH = Path(r"C:\Users\dovyd\Documents\JetBrains.dotTrace.CommandLineTools.windows-x64.2025.3.2\Reporter.exe")
-SNAPSHOT_DIR = Path("profiling-snapshots")
-PATTERN_FILE = Path("pattern.xml")
-OUTPUT_FILE = Path("results.xml")
+REPORTER_PATH = Path(r"C:\DotTraceCommandTools\Reporter.exe")
+BASE_DIR = Path(__file__).resolve().parent
+PATTERN_FILE = BASE_DIR / "pattern.xml"
+OUTPUT_FILE = BASE_DIR / "results.xml"
 
-def run_reporter(snapshot_name: str) -> subprocess.CompletedProcess:
-    snapshot = SNAPSHOT_DIR / snapshot_name
+def run_reporter(
+    snapshot_path: str | Path,
+    pattern_file: str | Path = PATTERN_FILE,
+    output_file: str | Path = OUTPUT_FILE,
+) -> subprocess.CompletedProcess:
+    snapshot = Path(snapshot_path).expanduser().resolve()
+    pattern = Path(pattern_file).expanduser().resolve()
+    output = Path(output_file).expanduser().resolve()
 
     if not REPORTER_PATH.exists():
         raise FileNotFoundError(f"Reporter not found: {REPORTER_PATH}")
     if not snapshot.exists():
         raise FileNotFoundError(f"Snapshot not found: {snapshot}")
-    if not PATTERN_FILE.exists():
-        raise FileNotFoundError(f"Pattern file not found: {PATTERN_FILE}")
+    if not pattern.exists():
+        raise FileNotFoundError(f"Pattern file not found: {pattern}")
 
     command = [
         str(REPORTER_PATH),
         "report",
         str(snapshot),
-        f"--pattern={PATTERN_FILE}",
-        f"--save-to={OUTPUT_FILE}",
+        f"--pattern={pattern}",
+        f"--save-to={output}",
     ]
 
     result = subprocess.run(

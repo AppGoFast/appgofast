@@ -3,8 +3,9 @@ from dottrace_to_xml import run_reporter
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-INPUT_FILE = Path("results.xml")
-OUTPUT_FILE = Path("ai_input.json")
+BASE_DIR = Path(__file__).resolve().parent
+INPUT_FILE = BASE_DIR / "results.xml"
+OUTPUT_FILE = BASE_DIR / "ai_input.json"
 TOP_N = 30
 
 
@@ -33,9 +34,19 @@ def delete_input_file(path: Path) -> None:
     if path.exists():
         path.unlink()
 
-if __name__ == "__main__":
-    run_reporter("SLOW Starting Tasks tab for the first time SAM.Win.dtp")
+
+def process_snapshot(
+    snapshot_path: str | Path,
+    output_json_path: str | Path = OUTPUT_FILE,
+    top_n: int = TOP_N,
+) -> Path:
+    output_json = Path(output_json_path).expanduser().resolve()
+    run_reporter(snapshot_path=snapshot_path, output_file=INPUT_FILE)
     functions = parse_functions(INPUT_FILE)
-    top = top_functions(functions)
-    save_json(top, OUTPUT_FILE)
+    top = top_functions(functions, n=top_n)
+    save_json(top, output_json)
     delete_input_file(INPUT_FILE)
+    return output_json
+
+if __name__ == "__main__":
+    process_snapshot("SLOW Starting Tasks tab for the first time SAM.Win.dtp")
