@@ -1,14 +1,18 @@
-import subprocess, sys, threading
-from pathlib import Path
-from tkinter import filedialog, messagebox
 from tkinterdnd2 import TkinterDnD
 import customtkinter as ctk
 from pages.home import HomePage
 from pages.settings import SettingsPage
 from pages.loading import LoadingPage
 from pages.output import OutputPage
-from profiler_processing.analyze_callstack import process_snapshot
+import sys
+import time
+import threading
 
+def fake_task(input_file_path):
+    print("started task...")
+    time.sleep(1)
+    print("task finished.")
+    return input_file_path + ":\n" + "\nyour app sucks!" * 50
 
 # Custom class to enable TkinterDnD on ctk
 class CTkDnD(ctk.CTk, TkinterDnD.DnDWrapper):
@@ -51,17 +55,9 @@ class App(CTkDnD):
         print("Provided additional input: " + input)
         self.analyze(self.input_file_path)
 
-    def analysis_task(self, path):
-        if path:
-            print(f"Processing:\n{path}")
-            try:
-                output_json = Path(path).with_name("ai_input.json")
-                result_path = process_snapshot(path, output_json_path=output_json)
-                print(f"Done:\n{result_path}")
-            except Exception as e:
-                print(f"Failed:\n{path}")
-                messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
-        self.after(0, self.on_analysis_result, result_path)
+    def analysis_task(self, input_file_path):
+        result = fake_task(input_file_path)
+        self.after(0, self.on_analysis_result, result)
 
     def on_analysis_result(self, result):
         self.frames["OutputPage"].set_result(result)

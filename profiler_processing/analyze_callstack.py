@@ -1,5 +1,5 @@
 import json
-from dottrace_to_xml import run_reporter
+from .dottrace_to_xml import run_reporter
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
