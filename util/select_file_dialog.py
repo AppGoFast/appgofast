@@ -31,6 +31,4 @@ def select_file_dialog():
                 path = p
     except Exception as e:
         print(f"! Failed to open select file dialog: {e}")
-    if not path:
-        path = filedialog.askopenfilename()
     return path

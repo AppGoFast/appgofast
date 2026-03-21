@@ -37,11 +37,12 @@ def delete_input_file(path: Path) -> None:
 
 def process_snapshot(
     snapshot_path: str | Path,
+    reporter_path: str | Path,
     output_json_path: str | Path = OUTPUT_FILE,
-    top_n: int = TOP_N,
+    top_n: int = TOP_N
 ) -> Path:
     output_json = Path(output_json_path).expanduser().resolve()
-    run_reporter(snapshot_path=snapshot_path, output_file=INPUT_FILE)
+    run_reporter(snapshot_path=snapshot_path, output_file=INPUT_FILE, reporter_path=reporter_path)
     functions = parse_functions(INPUT_FILE)
     top = top_functions(functions, n=top_n)
     save_json(top, output_json)

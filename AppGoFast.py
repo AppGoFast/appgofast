@@ -1,4 +1,4 @@
-import subprocess, sys, threading
+import subprocess, sys, threading, time, json
 from pathlib import Path
 from tkinter import filedialog, messagebox
 from tkinterdnd2 import TkinterDnD
@@ -52,20 +52,40 @@ class App(CTkDnD):
         self.analyze(self.input_file_path)
 
     def analysis_task(self, path):
-        if path:
-            print(f"Processing:\n{path}")
-            try:
-                output_json = Path(path).with_name("ai_input.json")
-                result_path = process_snapshot(path, output_json_path=output_json)
-                print(f"Done:\n{result_path}")
-            except Exception as e:
-                print(f"Failed:\n{path}")
-                messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
-        self.after(0, self.on_analysis_result, result_path)
+        if sys.platform != "linux":
+            if path:
+                print(f"Processing:\n{path}")
+                try:
+                    output_json = Path(path).with_name("ai_input.json")
+                    reporter_path = self.get_config()["reporter_path"]
+                    result_path = process_snapshot(path, output_json_path=output_json, reporter_path=reporter_path)
+                    print(f"Done:\n{result_path}")
+                except Exception as e:
+                    print(f"Failed:\n{path}")
+                    messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
+            self.after(0, self.on_analysis_result, result_path)
+        else:
+            time.sleep(1)
+            self.after(0, self.on_analysis_result, "Analysis skipped")
+
 
     def on_analysis_result(self, result):
         self.frames["OutputPage"].set_result(result)
         self.set_page("OutputPage")
+
+    def get_config(self):
+        try:
+            with open("config.json") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"! Failed to read confing: {e}")
+
+    def write_config(self, config):
+        try:
+            with open("config.json", mode="w", encoding="utf-8") as f:
+                json.dump(config, f)
+        except Exception as e:
+            print(f"! Failed to write config: {e}")
 
 
 # try catch to handle ctrl+c in console cleanly
