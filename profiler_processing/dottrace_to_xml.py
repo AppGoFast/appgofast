@@ -1,13 +1,13 @@
 import subprocess
 from pathlib import Path
 
-REPORTER_PATH = Path(r"C:\DotTraceCommandTools\Reporter.exe")
 BASE_DIR = Path(__file__).resolve().parent
 PATTERN_FILE = BASE_DIR / "pattern.xml"
 OUTPUT_FILE = BASE_DIR / "results.xml"
 
 def run_reporter(
     snapshot_path: str | Path,
+    reporter_path: str | Path,
     pattern_file: str | Path = PATTERN_FILE,
     output_file: str | Path = OUTPUT_FILE,
 ) -> subprocess.CompletedProcess:
@@ -15,7 +15,7 @@ def run_reporter(
     pattern = Path(pattern_file).expanduser().resolve()
     output = Path(output_file).expanduser().resolve()
 
-    if not REPORTER_PATH.exists():
+    if not reporter_path.exists():
         raise FileNotFoundError(f"Reporter not found: {REPORTER_PATH}")
     if not snapshot.exists():
         raise FileNotFoundError(f"Snapshot not found: {snapshot}")
@@ -23,7 +23,7 @@ def run_reporter(
         raise FileNotFoundError(f"Pattern file not found: {pattern}")
 
     command = [
-        str(REPORTER_PATH),
+        str(reporter_path),
         "report",
         str(snapshot),
         f"--pattern={pattern}",

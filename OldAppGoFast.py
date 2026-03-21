@@ -3,11 +3,7 @@ import sys
 from pathlib import Path
 import customtkinter
 from tkinter import filedialog, messagebox
-
-PROFILER_DIR = Path(__file__).resolve().parent / "profiler-processing"
-sys.path.insert(0, str(PROFILER_DIR))
-
-from analyze_callstack import process_snapshot  # type: ignore[import-not-found]
+from profiler_processing.analyze_callstack import process_snapshot
 
 
 class App(customtkinter.CTk):
