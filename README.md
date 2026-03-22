@@ -20,4 +20,4 @@
 
 5. Run it with: ```python AppGoFast.py```
 
-   If it fails (It shouldn't on windows) you may need to install tkdnd on your OS. Fedora: ```sudo dnf install tkdnd```
+   If it fails (It shouldn't on Windows) you may need to install tkdnd on your OS. Fedora: ```sudo dnf install tkdnd```
