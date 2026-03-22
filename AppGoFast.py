@@ -1,4 +1,4 @@
-import subprocess, sys, threading, time, json
+import subprocess, sys, threading, time, json, os, shutil
 from pathlib import Path
 from tkinter import filedialog, messagebox
 from tkinterdnd2 import TkinterDnD
@@ -74,6 +74,8 @@ class App(CTkDnD):
         self.set_page("OutputPage")
 
     def get_config(self):
+        if not os.path.exists("config.json"):
+            shutil.copyfile("config.json.example", "config.json")
         try:
             with open("config.json") as f:
                 return json.load(f)
