@@ -21,7 +21,7 @@ class App(CTkDnD):
     def __init__(self):
         super().__init__()
 
-        self.title("dpops")
+        self.title("AppGoFast")
         self.minsize(600, 400)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
