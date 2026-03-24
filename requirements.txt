@@ -1,3 +1,4 @@
 customtkinter
 tkinterdnd2
 google-genai
+ctk-markdown

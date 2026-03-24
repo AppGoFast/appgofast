@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from ctk_markdown import CTkMarkdown
 
 class OutputPage(ctk.CTkFrame):
     def __init__(self, master):
@@ -8,10 +9,8 @@ class OutputPage(ctk.CTkFrame):
         self.grid_rowconfigure(0, weight=1)
 
 
-        self.textbox = ctk.CTkTextbox(self)
-        self.textbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        self.textbox.insert("0.0", "your app sucks!\n" * 50)
-        self.textbox.configure(state="disabled")
+        self.output_text = CTkMarkdown(self)
+        self.output_text.grid(row=0, column=0, sticky="nsew", padx=5)
 
         self.input_frame = InputFrame(self, on_reanalyze=self.master.re_analyze)
         self.input_frame.grid(row=1, column=0, sticky="we", padx=5)
@@ -25,10 +24,7 @@ class OutputPage(ctk.CTkFrame):
 
     def set_result(self, result):
         self.input_frame.clear_input()
-        self.textbox.configure(state="normal")
-        self.textbox.delete("1.0", "end")
-        self.textbox.insert("1.0", result)
-        self.textbox.configure(state="disabled")
+        self.output_text.set_markdown(result)
 
 
 class InputFrame(ctk.CTkFrame):
