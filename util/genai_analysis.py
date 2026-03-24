@@ -13,6 +13,7 @@ Your task:
 2. Explain why it might be happening
 3. Suggest concrete optimizations
 4. Mention DevExpress-specific improvements if relevant
+5. Do NOT include any introduction, go straight to the analysis result
 
 Profiling data:
 '''
