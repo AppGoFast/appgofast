@@ -8,6 +8,7 @@ from pages.settings import SettingsPage
 from pages.loading import LoadingPage
 from pages.output import OutputPage
 from profiler_processing.analyze_callstack import process_snapshot
+from util.genai_analysis import analyze_with_gemini
 
 
 # Custom class to enable TkinterDnD on ctk
@@ -52,6 +53,7 @@ class App(CTkDnD):
         self.analyze(self.input_file_path)
 
     def analysis_task(self, path):
+        # use demo profiler output for linux
         if sys.platform != "linux":
             if path:
                 print(f"Processing:\n{path}")
@@ -59,14 +61,30 @@ class App(CTkDnD):
                     output_json = Path(path).with_name("ai_input.json")
                     reporter_path = self.get_config()["reporter_path"]
                     result_path = process_snapshot(path, output_json_path=output_json, reporter_path=reporter_path)
-                    print(f"Done:\n{result_path}")
-                    self.after(0, self.on_analysis_result, result_path)
+                    ai_output = "Analysis failed..."
+                    if os.path.exists(result_path):
+                        with open(result_path) as f:
+                            output = json.load(f)
+                        ai_output = analyze_with_gemini( str(output), self.get_config()["api_key"])
+                    self.after(0, self.on_analysis_result, ai_output)
                 except Exception as e:
-                    print(f"Failed:\n{path}")
                     messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
+                    self.set_page("HomePage")
         else:
-            time.sleep(1)
-            self.after(0, self.on_analysis_result, "Analysis skipped")
+            try:
+                time.sleep(1)
+                result_path = "profiler_processing/ai_input.json"
+                ai_output = "Analysis failed..."
+                if os.path.exists(result_path):
+                    with open(result_path) as f:
+                        output = json.load(f)
+                    ai_output = analyze_with_gemini( str(output), self.get_config()["api_key"])
+                self.after(0, self.on_analysis_result, ai_output)
+            except Exception as e:
+                print(e)
+                messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
+                self.set_page("HomePage")
+
 
 
     def on_analysis_result(self, result):
