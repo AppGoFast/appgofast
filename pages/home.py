@@ -14,7 +14,7 @@ class HomePage(ctk.CTkFrame):
         self.settings_button = ctk.CTkButton(self, text="⚙️", width=35, corner_radius=0, border_spacing=0, font=("", -25), fg_color="transparent", command=self.settings_button_event)
         self.settings_button.grid(row=0, column=0, sticky="e")
 
-        self.label = ctk.CTkLabel(self, text="Drop profiler output .xml here")
+        self.label = ctk.CTkLabel(self, text="Drop profiler output .dtp here", wraplength=550)
         self.label.grid(row=1, column=0)
         self.drop_target_register(DND_ALL)
         self.dnd_bind("<<Drop>>", self.file_drop_event)
