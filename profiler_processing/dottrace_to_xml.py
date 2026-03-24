@@ -12,11 +12,12 @@ def run_reporter(
     output_file: str | Path = OUTPUT_FILE,
 ) -> subprocess.CompletedProcess:
     snapshot = Path(snapshot_path).expanduser().resolve()
+    reporter = Path(reporter_path).expanduser().resolve()
     pattern = Path(pattern_file).expanduser().resolve()
     output = Path(output_file).expanduser().resolve()
 
-    if not reporter_path.exists():
-        raise FileNotFoundError(f"Reporter not found: {REPORTER_PATH}")
+    if not reporter.exists():
+        raise FileNotFoundError(f"Reporter not found: {reporter}")
     if not snapshot.exists():
         raise FileNotFoundError(f"Snapshot not found: {snapshot}")
     if not pattern.exists():

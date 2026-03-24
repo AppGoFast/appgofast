@@ -48,6 +48,3 @@ def process_snapshot(
     save_json(top, output_json)
     delete_input_file(INPUT_FILE)
     return output_json
-
-if __name__ == "__main__":
-    process_snapshot("SLOW Starting Tasks tab for the first time SAM.Win.dtp", reporter_path="C:\\DotTraceCommandTools\\Reporter.exe")
