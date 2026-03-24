@@ -60,10 +60,10 @@ class App(CTkDnD):
                     reporter_path = self.get_config()["reporter_path"]
                     result_path = process_snapshot(path, output_json_path=output_json, reporter_path=reporter_path)
                     print(f"Done:\n{result_path}")
+                    self.after(0, self.on_analysis_result, result_path)
                 except Exception as e:
                     print(f"Failed:\n{path}")
                     messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
-            self.after(0, self.on_analysis_result, result_path)
         else:
             time.sleep(1)
             self.after(0, self.on_analysis_result, "Analysis skipped")

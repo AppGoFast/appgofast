@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from tkinterdnd2 import DND_ALL
+from urllib.parse import urlparse, unquote
 
 class HomePage(ctk.CTkFrame):
     def __init__(self, master):
@@ -26,8 +27,21 @@ class HomePage(ctk.CTkFrame):
     def settings_button_event(self):
         self.master.set_page("SettingsPage")
 
+    def _convert_file_url_to_path(self, file_url: str) -> str:
+        """Convert file URL to filesystem path, handling both file:/// and file:/ formats."""
+        if file_url.startswith("file:"):
+            # Parse the URL and extract the path
+            parsed = urlparse(file_url)
+            # unquote handles URL encoding like %20 for spaces
+            path = unquote(parsed.path)
+            # On Windows, urlparse returns /C:/ for file:///C:/, so we need to remove the leading /
+            if path.startswith("/") and len(path) > 2 and path[2] == ":":
+                path = path[1:]
+            return path
+        return file_url
+
     def file_drop_event(self, event):
-        self.input_file_path = event.data
+        self.input_file_path = self._convert_file_url_to_path(event.data)
         self.label.configure(text = self.input_file_path)
         self.analyze_button.configure(state="normal")
 
