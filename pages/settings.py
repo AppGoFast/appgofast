@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import StringVar
 from util.select_file_dialog import select_file_dialog
+from frames.BottomButtonsFrame import BottomButtonsFrame
 
 
 class SettingsPage(ctk.CTkFrame):
@@ -72,16 +73,3 @@ class TextVarFrame(ctk.CTkFrame):
 
         self.var_entry = ctk.CTkEntry(self, textvariable=self.text_var)
         self.var_entry.grid(row=0, column=1, sticky="we")
-
-
-class BottomButtonsFrame(ctk.CTkFrame):
-    def __init__(self, master, name1, command1, name2, command2):
-        super().__init__(master)
-        self.configure(fg_color="transparent")
-        self.grid_columnconfigure((0, 1), weight=1)
-
-        self.button1 = ctk.CTkButton(self, text=name1, fg_color="firebrick3", hover_color="firebrick4", command=command1)
-        self.button1.grid(row=0, column=0, padx=(0, 10))
-
-        self.button1 = ctk.CTkButton(self, text=name2, command=command2)
-        self.button1.grid(row=0, column=1)
