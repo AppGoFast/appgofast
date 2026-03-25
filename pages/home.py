@@ -16,12 +16,12 @@ class HomePage(ctk.CTkFrame):
         self.settings_button = ctk.CTkButton(self, text="⚙️", width=35, corner_radius=0, border_spacing=0, font=("", -25), fg_color="transparent", command=self.settings_button_event)
         self.settings_button.grid(row=0, column=0, sticky="e")
 
-        self.label = ctk.CTkLabel(self, text="Drop profiler output .dtp here\n\n or:", wraplength=550)
+        self.label = ctk.CTkLabel(self, text="Drag & drop your .dtp file\n\n or:", wraplength=550)
         self.label.grid(row=1, column=0, sticky="s")
         self.drop_target_register(DND_ALL)
         self.dnd_bind("<<Drop>>", self.file_drop_event)
 
-        self.select_file_button = ctk.CTkButton(self, text="Select File", command=self.open_select_file_dialog)
+        self.select_file_button = ctk.CTkButton(self, text="Select File", fg_color="gray28", hover_color="gray20", command=self.open_select_file_dialog)
         self.select_file_button.grid(row=2, column=0, sticky="n", pady=20)
 
         self.analyze_button = ctk.CTkButton(self, text="Analyze", command=self.analyze_button_event, state="disabled")
