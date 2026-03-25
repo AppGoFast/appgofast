@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinterdnd2 import DND_ALL
 from urllib.parse import urlparse, unquote
+from util.select_file_dialog import select_file_dialog
 
 class HomePage(ctk.CTkFrame):
     def __init__(self, master):
@@ -9,16 +10,19 @@ class HomePage(ctk.CTkFrame):
         self.input_file_path = ""
 
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure((1, 2), weight=1)
 
 
         self.settings_button = ctk.CTkButton(self, text="⚙️", width=35, corner_radius=0, border_spacing=0, font=("", -25), fg_color="transparent", command=self.settings_button_event)
         self.settings_button.grid(row=0, column=0, sticky="e")
 
-        self.label = ctk.CTkLabel(self, text="Drop profiler output .dtp here", wraplength=550)
-        self.label.grid(row=1, column=0)
+        self.label = ctk.CTkLabel(self, text="Drop profiler output .dtp here\n\n or:", wraplength=550)
+        self.label.grid(row=1, column=0, sticky="s")
         self.drop_target_register(DND_ALL)
         self.dnd_bind("<<Drop>>", self.file_drop_event)
+
+        self.select_file_button = ctk.CTkButton(self, text="Select File", command=self.open_select_file_dialog)
+        self.select_file_button.grid(row=2, column=0, sticky="n", pady=20)
 
         self.analyze_button = ctk.CTkButton(self, text="Analyze", command=self.analyze_button_event, state="disabled")
         self.analyze_button.grid(row=99, column=0, pady=10, sticky="s")
@@ -26,6 +30,13 @@ class HomePage(ctk.CTkFrame):
 
     def settings_button_event(self):
         self.master.set_page("SettingsPage")
+
+    def open_select_file_dialog(self):
+        path = select_file_dialog()
+        if path:
+            self.input_file_path = path
+            self.label.configure(text = self.input_file_path)
+            self.analyze_button.configure(state="normal")
 
     def _convert_file_url_to_path(self, file_url: str) -> str:
         """Convert file URL to filesystem path, handling both file:/// and file:/ formats."""

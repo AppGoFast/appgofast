@@ -23,6 +23,7 @@ class App(CTkDnD):
         super().__init__()
 
         self.title("AppGoFast")
+        ctk.set_appearance_mode("dark") # force darkmode
         self.minsize(600, 400)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
