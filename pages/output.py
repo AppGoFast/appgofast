@@ -10,7 +10,7 @@ class OutputPage(ctk.CTkFrame):
 
 
         self.output_text = CTkMarkdown(self)
-        self.output_text.grid(row=0, column=0, sticky="nsew", padx=5)
+        self.output_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
         self.input_frame = InputFrame(self, on_reanalyze=self.master.re_analyze)
         self.input_frame.grid(row=1, column=0, sticky="we", padx=5)

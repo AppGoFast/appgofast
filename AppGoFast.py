@@ -51,9 +51,10 @@ class App(CTkDnD):
 
     def re_analyze(self, input):
         print("Provided additional input: " + input)
-        self.analyze(self.input_file_path)
+        self.set_page("LoadingPage")
+        threading.Thread( target=self.analysis_task, args=(self.input_file_path, input,), daemon=True).start()
 
-    def analysis_task(self, path):
+    def analysis_task(self, path, additional_input = ""):
         # use demo profiler output for linux
         if sys.platform != "linux":
             if path:
@@ -66,6 +67,8 @@ class App(CTkDnD):
                     if os.path.exists(result_path):
                         with open(result_path) as f:
                             output = json.load(f)
+                        if additional_input:
+                            output = f"{str(output)}\n{additional_input}"
                         ai_output = analyze_with_gemini( str(output), self.get_config()["api_key"])
                     self.after(0, self.on_analysis_result, ai_output)
                 except Exception as e:
@@ -79,6 +82,8 @@ class App(CTkDnD):
                 if os.path.exists(result_path):
                     with open(result_path) as f:
                         output = json.load(f)
+                    if additional_input:
+                        output = f"{str(output)}\n{additional_input}"
                     ai_output = analyze_with_gemini( str(output), self.get_config()["api_key"])
                 self.after(0, self.on_analysis_result, ai_output)
             except Exception as e:
