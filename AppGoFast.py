@@ -30,6 +30,7 @@ class App(CTkDnD):
 
         self.frames = {}
         self.input_file_path = ""
+        self.last_profiler_result_path = ""
 
         for Page in (HomePage, SettingsPage, LoadingPage, OutputPage):
             frame = Page(self)
@@ -62,7 +63,12 @@ class App(CTkDnD):
                 try:
                     output_json = Path(path).with_name("ai_input.json")
                     reporter_path = self.get_config()["reporter_path"]
-                    result_path = process_snapshot(path, output_json_path=output_json, reporter_path=reporter_path)
+                    result_path = ""
+                    if additional_input and self.last_profiler_result_path:
+                        result_path = self.last_profiler_result_path
+                    else:
+                        result_path = process_snapshot(path, output_json_path=output_json, reporter_path=reporter_path)
+                        self.last_profiler_result_path = result_path
                     ai_output = "Analysis failed..."
                     if os.path.exists(result_path):
                         with open(result_path) as f:
@@ -77,7 +83,13 @@ class App(CTkDnD):
         else:
             try:
                 time.sleep(1)
-                result_path = "profiler_processing/ai_input.json"
+                result_path = ""
+                if additional_input and self.last_profiler_result_path:
+                        result_path = self.last_profiler_result_path
+                        print("using last profiler result path")
+                else:
+                    result_path = "profiler_processing/ai_input.json"
+                    self.last_profiler_result_path = result_path
                 ai_output = "Analysis failed..."
                 if os.path.exists(result_path):
                     with open(result_path) as f:
