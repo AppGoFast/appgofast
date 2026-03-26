@@ -10,18 +10,23 @@ class SettingsPage(ctk.CTkFrame):
         self.app_config = self.master.get_config()
         self.reporter_path_var = StringVar(self, value=self.app_config["reporter_path"])
         self.api_key_var = StringVar(self, value=self.app_config["api_key"])
+        self.ai_models = self.app_config["ai_models"]
+        self.selected_ai_model = StringVar(self, value=self.app_config["selected_ai_model"])
 
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure((1, 2), weight=1)
+        self.grid_rowconfigure((1, 98), weight=1)
 
         self.title = ctk.CTkLabel(self, text="Settings:", font=("TkTextFont",18))
         self.title.grid(row=0, column=0, padx=20, pady=10, sticky="n")
 
-        self.reporter_path = PathSelectionFrame(self, name="Reporter path:", path=self.reporter_path_var)
-        self.reporter_path.grid(row=1, column=0, sticky="esw", padx=10, pady=5)
+        self.reporter_path = PathSelectionFrame(self, name="Reporter path:", path_var=self.reporter_path_var)
+        self.reporter_path.grid(row=2, column=0, sticky="we", padx=10, pady=5)
 
         self.api_key = TextVarFrame(self, name="API key:", text_var=self.api_key_var)
-        self.api_key.grid(row=2, column=0, sticky="wne", padx=10, pady=5)
+        self.api_key.grid(row=3, column=0, sticky="we", padx=10, pady=5)
+
+        self.ai_model_selector = DropDownSelector(self, name="AI model:", values=self.ai_models, selected_var=self.selected_ai_model)
+        self.ai_model_selector.grid(row=4, column=0, sticky="we", padx=10, pady=5)
 
         self.bottom_buttons = BottomButtonsFrame(self, name1="Discard & Return", command1=self.on_cancel_button, name2="Save & Return", command2=self.on_save_button)
         self.bottom_buttons.grid(row=99, column=0, pady=10, padx=10, sticky="s")
@@ -30,23 +35,25 @@ class SettingsPage(ctk.CTkFrame):
     def on_save_button(self):
         self.app_config["reporter_path"] = self.reporter_path_var.get()
         self.app_config["api_key"] = self.api_key_var.get()
+        self.app_config["selected_ai_model"] = self.selected_ai_model.get()
         self.master.write_config(self.app_config)
         self.master.set_page("HomePage")
 
     def on_cancel_button(self):
         self.reporter_path_var.set(self.app_config["reporter_path"])
         self.api_key_var.set(self.app_config["api_key"])
+        self.selected_ai_model.set(self.app_config["selected_ai_model"])
         self.master.set_page("HomePage")
 
 
 class PathSelectionFrame(ctk.CTkFrame):
-    def __init__(self, master, name, path):
+    def __init__(self, master, name, path_var):
         super().__init__(master)
-        self.path_var = path
+        self.path_var = path_var
 
         self.grid_columnconfigure((1, 2), weight=1)
 
-        self.label = ctk.CTkLabel(self, text=name)
+        self.label = ctk.CTkLabel(self, text=name, width=100, anchor="w")
         self.label.grid(row=0, column=0, sticky="w", padx=(10,5))
 
         self.path_label = ctk.CTkLabel(self, textvariable=self.path_var, anchor="w", wraplength=400)
@@ -68,8 +75,21 @@ class TextVarFrame(ctk.CTkFrame):
 
         self.grid_columnconfigure(1, weight=1)
 
-        self.label = ctk.CTkLabel(self, text=name)
+        self.label = ctk.CTkLabel(self, text=name, width=100, anchor="w")
         self.label.grid(row=0, column=0, sticky="w", padx=(10, 5))
 
         self.var_entry = ctk.CTkEntry(self, textvariable=self.text_var)
         self.var_entry.grid(row=0, column=1, sticky="we")
+
+class DropDownSelector(ctk.CTkFrame):
+    def __init__(self, master, name, values, selected_var):
+        super().__init__(master)
+        self.selected_var = selected_var
+
+        self.grid_columnconfigure(1, weight=1)
+
+        self.label = ctk.CTkLabel(self, text=name, width=100, anchor="w")
+        self.label.grid(row=0, column=0, sticky="w", padx=(10, 5))
+
+        self.selector = ctk.CTkOptionMenu(self, values=values, variable=self.selected_var)
+        self.selector.grid(row=0, column=1, sticky="we")

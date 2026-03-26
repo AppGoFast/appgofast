@@ -15,13 +15,13 @@ Your task:
 4. Mention DevExpress-specific improvements if relevant
 5. Do NOT include any introduction, go straight to the analysis result
 
-Profiling data:
+Profiling data in JSON:
 '''
 
-def analyze_with_gemini(profiler_output_string: str, api_key: str):
+def analyze_with_gemini(profiler_output_string: str, api_key: str, model: str = "gemini-3.1-flash-lite-preview"):
     client = genai.Client(api_key=api_key)
     prompt = PROMPT + profiler_output_string
     response = client.models.generate_content(
-        model="gemini-3.1-flash-lite-preview", contents=prompt
+        model=model, contents=prompt
     )
     return response.text

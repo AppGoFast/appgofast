@@ -56,6 +56,9 @@ class App(CTkDnD):
         threading.Thread( target=self.analysis_task, args=(self.input_file_path, input,), daemon=True).start()
 
     def analysis_task(self, path, additional_input = ""):
+        config = self.get_config()
+        ai_model = config["selected_ai_model"]
+        api_key = config["api_key"]
         # use demo profiler output for linux
         if sys.platform != "linux":
             if path:
@@ -75,7 +78,7 @@ class App(CTkDnD):
                             output = json.load(f)
                         if additional_input:
                             output = f"{str(output)}\n{additional_input}"
-                        ai_output = analyze_with_gemini( str(output), self.get_config()["api_key"])
+                        ai_output = analyze_with_gemini( str(output), api_key, ai_model)
                     self.after(0, self.on_analysis_result, ai_output)
                 except Exception as e:
                     messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
@@ -96,7 +99,7 @@ class App(CTkDnD):
                         output = json.load(f)
                     if additional_input:
                         output = f"{str(output)}\n{additional_input}"
-                    ai_output = analyze_with_gemini( str(output), self.get_config()["api_key"])
+                    ai_output = analyze_with_gemini( str(output), api_key, ai_model)
                 self.after(0, self.on_analysis_result, ai_output)
             except Exception as e:
                 print(e)
@@ -117,6 +120,9 @@ class App(CTkDnD):
                 return json.load(f)
         except Exception as e:
             print(f"! Failed to read confing: {e}")
+
+    def get_config_val(name: str):
+        return self.get_config()[value]
 
     def write_config(self, config):
         try:
