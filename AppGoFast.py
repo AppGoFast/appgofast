@@ -113,16 +113,11 @@ class App(CTkDnD):
         self.set_page("OutputPage")
 
     def get_config(self):
-        if not os.path.exists("config.json"):
-            shutil.copyfile("config.json.example", "config.json")
         try:
             with open("config.json") as f:
                 return json.load(f)
         except Exception as e:
             print(f"! Failed to read confing: {e}")
-
-    def get_config_val(name: str):
-        return self.get_config()[value]
 
     def write_config(self, config):
         try:
@@ -131,10 +126,24 @@ class App(CTkDnD):
         except Exception as e:
             print(f"! Failed to write config: {e}")
 
+def validate_config():
+    if not os.path.exists("config.json"):
+            shutil.copyfile("config.json.example", "config.json")
+    with open("config.json.example") as f:
+        example_config = json.load(f)
+    with open("config.json") as f:
+        config = json.load(f)
+    if example_config.keys() == config.keys():
+        return True
+    print(f"\033[1;31mConfig incomplete: Missing required keys: {example_config.keys() - config.keys()}.\033[0m")
+    return False
 
-# try catch to handle ctrl+c in console cleanly
-try:
-    app = App()
-    app.mainloop()
-except KeyboardInterrupt:
-    sys.exit()
+if __name__ == "__main__":
+    try: # try catch to handle ctrl+c in console cleanly
+        if not validate_config():
+            print("\033[1;31mConfig validation failed!\033[0m")
+            exit()
+        app = App()
+        app.mainloop()
+    except KeyboardInterrupt:
+        sys.exit()
