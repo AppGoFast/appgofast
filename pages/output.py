@@ -49,13 +49,13 @@ class InputFrame(ctk.CTkFrame):
 
 
     def on_reanalyze(self):
-        entry_input = self.entry.get(1.0, "end-1c").strip()
+        entry_input = self.entry.get("0.0", "end").strip()
         if entry_input:
             self.on_reanalyze_callback(entry_input)
 
     def on_entry_change(self, event):
-        self.button.configure(state="normal" if self.entry.get("1.0", "end-1c").strip() else "disabled")
+        self.button.configure(state="normal" if self.entry.get("0.0", "end").strip() else "disabled")
 
     def clear_input(self):
-        self.entry.delete("1.0", "end")
+        self.entry.delete("0.0", "end")
         self.button.configure(state="disabled")

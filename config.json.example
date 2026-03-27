@@ -2,5 +2,6 @@
     "reporter_path": "C:\\DotTraceCommandTools\\Reporter.exe",
     "api_key": "besikiskiakopusteliaudamas",
     "ai_models": ["gemini-3.1-flash-lite-preview", "gemini-3-flash-preview", "gemini-2.5-flash-lite", "gemini-2.5-flash"],
-    "selected_ai_model": "gemini-3.1-flash-lite-preview"
+    "selected_ai_model": "gemini-3.1-flash-lite-preview",
+    "ai_prompt": "You are a senior .NET performance engineer.\n\nFramework: DevExpress.\n\nYou will receive profiling data from a .NET profiler.\nThe data contains the top functions by execution time.\n\nYour task:\n1. Identify the performance bottleneck\n2. Explain why it might be happening\n3. Suggest concrete optimizations\n4. Mention DevExpress-specific improvements if relevant\n5. Do NOT include any introduction, go straight to the analysis result\n\nProfiling data in JSON:"
 }

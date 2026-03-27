@@ -59,6 +59,7 @@ class App(CTkDnD):
         config = self.get_config()
         ai_model = config["selected_ai_model"]
         api_key = config["api_key"]
+        ai_prompt = config["ai_prompt"]
         # use demo profiler output for linux
         if sys.platform != "linux":
             if path:
@@ -78,7 +79,7 @@ class App(CTkDnD):
                             output = json.load(f)
                         if additional_input:
                             output = f"{str(output)}\n{additional_input}"
-                        ai_output = analyze_with_gemini( str(output), api_key, ai_model)
+                        ai_output = analyze_with_gemini(ai_prompt + str(output), api_key, ai_model)
                     self.after(0, self.on_analysis_result, ai_output)
                 except Exception as e:
                     messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
@@ -99,7 +100,7 @@ class App(CTkDnD):
                         output = json.load(f)
                     if additional_input:
                         output = f"{str(output)}\n{additional_input}"
-                    ai_output = analyze_with_gemini( str(output), api_key, ai_model)
+                    ai_output = analyze_with_gemini(ai_prompt + str(output), api_key, ai_model)
                 self.after(0, self.on_analysis_result, ai_output)
             except Exception as e:
                 print(e)
@@ -135,7 +136,7 @@ def validate_config():
         config = json.load(f)
     if example_config.keys() == config.keys():
         return True
-    print(f"\033[1;31mConfig incomplete: Missing required keys: {example_config.keys() - config.keys()}.\033[0m")
+    print(f"\033[1;31mConfig incomplete: Missing required keys: {example_config.keys() - config.keys()}. Delete config.json to generate a new default or add missing key values.\033[0m")
     return False
 
 if __name__ == "__main__":
