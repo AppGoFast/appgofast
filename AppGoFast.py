@@ -60,6 +60,12 @@ class App(CTkDnD):
         ai_model = config["selected_ai_model"]
         api_key = config["api_key"]
         ai_prompt = config["ai_prompt"]
+
+        dual_ai_model = config["dual_ai_model"]
+        ai2_include_profiler_output = config["ai2_include_profiler_output"]
+        ai_model2 = config["selected_ai_model2"]
+        ai_prompt2 = config["ai_prompt2"]
+
         # use demo profiler output for linux
         if sys.platform != "linux":
             if path:
@@ -80,6 +86,11 @@ class App(CTkDnD):
                         if additional_input:
                             output = f"{str(output)}\n{additional_input}"
                         ai_output = analyze_with_gemini(ai_prompt + str(output), api_key, ai_model)
+                        if dual_ai_model == "1":
+                            if ai2_include_profiler_output == "1":
+                                ai_output = analyze_with_gemini(str(output) + ai_output + ai_prompt2 + additional_input, api_key, ai_model2)
+                            else:
+                                ai_output = analyze_with_gemini(ai_output + ai_prompt2 + additional_input, api_key, ai_model2)
                     self.after(0, self.on_analysis_result, ai_output)
                 except Exception as e:
                     messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
@@ -101,6 +112,11 @@ class App(CTkDnD):
                     if additional_input:
                         output = f"{str(output)}\n{additional_input}"
                     ai_output = analyze_with_gemini(ai_prompt + str(output), api_key, ai_model)
+                    if dual_ai_model == "1":
+                        if ai2_include_profiler_output == "1":
+                            ai_output = analyze_with_gemini(str(output) + ai_output + ai_prompt2 + additional_input, api_key, ai_model2)
+                        else:
+                            ai_output = analyze_with_gemini(ai_output + ai_prompt2 + additional_input, api_key, ai_model2)
                 self.after(0, self.on_analysis_result, ai_output)
             except Exception as e:
                 print(e)
