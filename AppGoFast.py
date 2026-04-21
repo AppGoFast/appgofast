@@ -1,6 +1,6 @@
 import subprocess, sys, threading, time, json, os, shutil
 from pathlib import Path
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, StringVar
 from tkinterdnd2 import TkinterDnD
 import customtkinter as ctk
 from pages.home import HomePage
@@ -71,6 +71,7 @@ class App(CTkDnD):
             if path:
                 print(f"Processing:\n{path}")
                 try:
+                    self.frames["LoadingPage"].set_info_text("Reading profiling snapshot...")
                     output_json = Path(path).with_name("ai_input.json")
                     reporter_path = self.get_config()["reporter_path"]
                     result_path = ""
@@ -85,8 +86,10 @@ class App(CTkDnD):
                             output = json.load(f)
                         if additional_input:
                             output = f"{str(output)}\n{additional_input}"
+                        self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
                         ai_output = analyze_with_gemini(ai_prompt + str(output), api_key, ai_model)
                         if dual_ai_model == "1":
+                            self.frames["LoadingPage"].set_info_text("Writing suggestions...")
                             if ai2_include_profiler_output == "1":
                                 ai_output = analyze_with_gemini(str(output) + ai_output + ai_prompt2 + additional_input, api_key, ai_model2)
                             else:
@@ -97,6 +100,7 @@ class App(CTkDnD):
                     self.set_page("HomePage")
         else:
             try:
+                self.frames["LoadingPage"].set_info_text("Reading profiling snapshot...")
                 time.sleep(1)
                 result_path = ""
                 if additional_input and self.last_profiler_result_path:
@@ -111,8 +115,10 @@ class App(CTkDnD):
                         output = json.load(f)
                     if additional_input:
                         output = f"{str(output)}\n{additional_input}"
+                    self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
                     ai_output = analyze_with_gemini(ai_prompt + str(output), api_key, ai_model)
                     if dual_ai_model == "1":
+                        self.frames["LoadingPage"].set_info_text("Writing suggestions...")
                         if ai2_include_profiler_output == "1":
                             ai_output = analyze_with_gemini(str(output) + ai_output + ai_prompt2 + additional_input, api_key, ai_model2)
                         else:
@@ -126,6 +132,7 @@ class App(CTkDnD):
 
 
     def on_analysis_result(self, result):
+        self.frames["LoadingPage"].set_info_text("Loading...")
         self.frames["OutputPage"].set_result(result)
         self.set_page("OutputPage")
 
