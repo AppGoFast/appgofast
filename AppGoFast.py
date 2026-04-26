@@ -10,7 +10,6 @@ from pages.output import OutputPage
 from profiler_processing.analyze_callstack import process_snapshot
 from util.genai_analysis import analyze_with_gemini
 
-
 # Custom class to enable TkinterDnD on ctk
 class CTkDnD(ctk.CTk, TkinterDnD.DnDWrapper):
     def __init__(self, *args, **kwargs):
@@ -47,11 +46,13 @@ class App(CTkDnD):
     def analyze(self, input_file_path):
         if input_file_path:
             self.input_file_path = input_file_path
+            self.frames["LoadingPage"].set_info_text("Loading...")
             self.set_page("LoadingPage")
             threading.Thread( target=self.analysis_task, args=(input_file_path,), daemon=True).start()
 
     def re_analyze(self, input):
         print("Provided additional input: " + input)
+        self.frames["LoadingPage"].set_info_text("Loading...")
         self.set_page("LoadingPage")
         threading.Thread( target=self.analysis_task, args=(self.input_file_path, input,), daemon=True).start()
 
@@ -107,7 +108,7 @@ class App(CTkDnD):
                         result_path = self.last_profiler_result_path
                         print("using last profiler result path")
                 else:
-                    result_path = "profiler_processing/ai_input.json"
+                    result_path = os.path.join(APP_PATH, "profiler_processing/ai_input.json")
                     self.last_profiler_result_path = result_path
                 ai_output = "Analysis failed..."
                 if os.path.exists(result_path):
@@ -132,41 +133,48 @@ class App(CTkDnD):
 
 
     def on_analysis_result(self, result):
-        self.frames["LoadingPage"].set_info_text("Loading...")
+        self.frames["LoadingPage"].set_info_text("Something went wrong.")
         self.frames["OutputPage"].set_result(result)
         self.set_page("OutputPage")
 
     def get_config(self):
         try:
-            with open("config.json") as f:
+            with open(os.path.join(APP_PATH, "config.json")) as f:
                 return json.load(f)
         except Exception as e:
             print(f"! Failed to read confing: {e}")
 
     def write_config(self, config):
         try:
-            with open("config.json", mode="w", encoding="utf-8") as f:
+            with open(os.path.join(APP_PATH, "config.json") , mode="w", encoding="utf-8") as f:
                 json.dump(config, f)
         except Exception as e:
             print(f"! Failed to write config: {e}")
 
 def validate_config():
-    if not os.path.exists("config.json"):
-            shutil.copyfile("config.json.example", "config.json")
-    with open("config.json.example") as f:
-        example_config = json.load(f)
-    with open("config.json") as f:
-        config = json.load(f)
-    if example_config.keys() == config.keys():
-        return True
-    print(f"\033[1;31mConfig incomplete: Missing required keys: {example_config.keys() - config.keys()}. Delete config.json to generate a new default or add missing key values.\033[0m")
+    try:
+        if not os.path.exists(os.path.join(APP_PATH, "config.json")):
+            shutil.copyfile(os.path.join(APP_PATH, "config.json.example"), os.path.join(APP_PATH, "config.json"))
+        with open(os.path.join(APP_PATH, "config.json.example")) as f:
+            example_config = json.load(f)
+        with open(os.path.join(APP_PATH, "config.json")) as f:
+            config = json.load(f)
+        if example_config.keys() == config.keys():
+            return True
+        print(f"\033[1;31mConfig incomplete: Missing required keys: {example_config.keys() - config.keys()}. Delete config.json to generate a new default or add missing key values.\033[0m")
+    except Exception as e:
+        print(f"Your paths are probably fucked ¯\\_(ツ)_/¯: {e}")
     return False
 
 if __name__ == "__main__":
     try: # try catch to handle ctrl+c in console cleanly
+        if getattr(sys, 'frozen', False):
+            APP_PATH = sys._MEIPASS
+        else:
+            APP_PATH = os.path.dirname(os.path.abspath(__file__))
         if not validate_config():
             print("\033[1;31mConfig validation failed!\033[0m")
-            exit()
+            sys.exit()
         app = App()
         app.mainloop()
     except KeyboardInterrupt:

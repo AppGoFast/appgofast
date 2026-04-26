@@ -21,3 +21,11 @@
 5. Run it with: ```python AppGoFast.py```
 
    If it fails (It shouldn't on Windows) you may need to install tkdnd on your OS. Fedora: ```sudo dnf install tkdnd```
+   
+## Building into an executable:
+
+1. Complete the steps in section above and verify that the script functions. Make sure you are using the venv.
+
+2. Get the install location of CustomTkinter with: ```pip show customtkinter```
+
+3. Run: ```pyinstaller --noconfirm --onedir --windowed --add-data "<CustomTkinter Location>/customtkinter;customtkinter/" --add-data "<Path to config.json.example>:." "<Path to AppGoFast.py>"```
