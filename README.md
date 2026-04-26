@@ -28,4 +28,4 @@
 
 2. Get the install location of CustomTkinter with: ```pip show customtkinter```
 
-3. Run: ```pyinstaller --noconfirm --onedir --windowed --add-data "<CustomTkinter Location>/customtkinter;customtkinter/" --add-data "<Path to config.json.example>:." "<Path to AppGoFast.py>"```
+3. Run: ```pyinstaller --noconfirm --onedir --windowed --add-data "<CustomTkinter Location>/customtkinter;customtkinter/" --add-data "<Path to config.json.example>;." "<Path to AppGoFast.py>"```
