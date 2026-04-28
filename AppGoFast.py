@@ -63,7 +63,6 @@ class App(CTkDnD):
         ai_prompt = config["ai_prompt"]
 
         dual_ai_model = config["dual_ai_model"]
-        ai2_include_profiler_output = config["ai2_include_profiler_output"]
         ai_model2 = config["selected_ai_model2"]
         ai_prompt2 = config["ai_prompt2"]
 
@@ -84,17 +83,19 @@ class App(CTkDnD):
                     ai_output = "Analysis failed..."
                     if os.path.exists(result_path):
                         with open(result_path) as f:
-                            output = json.load(f)
-                        if additional_input:
-                            output = f"{str(output)}\n{additional_input}"
+                            profiling_data = json.load(f)
+                        profiling_data = f"<data>\n{str(profiling_data)}\n</data>"
+                        ai_input = f"{ai_prompt}\n\n{profiling_data}"
+                        if dual_ai_model == '0' and additional_input:
+                            ai_input = f"{ai_input}\n\n<additional_user_input>\n{additional_input}\n</additional_user_input>"
                         self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
-                        ai_output = analyze_with_gemini(ai_prompt + str(output), api_key, ai_model)
-                        if dual_ai_model == "1":
+                        ai_output = analyze_with_gemini(ai_input, api_key, ai_model)
+                        if dual_ai_model == '1':
                             self.frames["LoadingPage"].set_info_text("Writing suggestions...")
-                            if ai2_include_profiler_output == "1":
-                                ai_output = analyze_with_gemini(str(output) + ai_output + ai_prompt2 + additional_input, api_key, ai_model2)
-                            else:
-                                ai_output = analyze_with_gemini(ai_output + ai_prompt2 + additional_input, api_key, ai_model2)
+                            ai_input2 = f"{ai_prompt2}\n\n<data>\n{ai_output}\n</data>"
+                            if additional_input:
+                                ai_input2 = f"{ai_input2}\n\n<additional_user_input>\n{additional_input}\n</additional_user_input>"
+                            ai_output = analyze_with_gemini(ai_input2, api_key, ai_model2)
                     self.after(0, self.on_analysis_result, ai_output)
                 except Exception as e:
                     messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
@@ -106,24 +107,25 @@ class App(CTkDnD):
                 result_path = ""
                 if additional_input and self.last_profiler_result_path:
                         result_path = self.last_profiler_result_path
-                        print("using last profiler result path")
                 else:
                     result_path = os.path.join(APP_PATH, "profiler_processing/ai_input.json")
                     self.last_profiler_result_path = result_path
                 ai_output = "Analysis failed..."
                 if os.path.exists(result_path):
                     with open(result_path) as f:
-                        output = json.load(f)
-                    if additional_input:
-                        output = f"{str(output)}\n{additional_input}"
+                        profiling_data = json.load(f)
+                    profiling_data = f"<data>\n{str(profiling_data)}\n</data>"
+                    ai_input = f"{ai_prompt}\n\n{profiling_data}"
+                    if dual_ai_model == '0' and additional_input:
+                        ai_input = f"{ai_input}\n\n<additional_user_input>\n{additional_input}\n</additional_user_input>"
                     self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
-                    ai_output = analyze_with_gemini(ai_prompt + str(output), api_key, ai_model)
-                    if dual_ai_model == "1":
+                    ai_output = analyze_with_gemini(ai_input, api_key, ai_model)
+                    if dual_ai_model == '1':
                         self.frames["LoadingPage"].set_info_text("Writing suggestions...")
-                        if ai2_include_profiler_output == "1":
-                            ai_output = analyze_with_gemini(str(output) + ai_output + ai_prompt2 + additional_input, api_key, ai_model2)
-                        else:
-                            ai_output = analyze_with_gemini(ai_output + ai_prompt2 + additional_input, api_key, ai_model2)
+                        ai_input2 = f"{ai_prompt2}\n\n<data>\n{ai_output}\n</data>"
+                        if additional_input:
+                            ai_input2 = f"{ai_input2}\n\n<additional_user_input>\n{additional_input}\n</additional_user_input>"
+                        ai_output = analyze_with_gemini(ai_input2, api_key, ai_model2)
                 self.after(0, self.on_analysis_result, ai_output)
             except Exception as e:
                 print(e)

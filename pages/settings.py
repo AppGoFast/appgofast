@@ -16,14 +16,13 @@ class SettingsPage(ctk.CTkFrame):
         self.ai_prompt_var = StringVar(self, value=self.app_config["ai_prompt"])
 
         self.is_dual_model_var = StringVar(self, value=self.app_config["dual_ai_model"])
-        self.ai2_include_profiler_output_var = StringVar(self, value=self.app_config["ai2_include_profiler_output"])
         self.selected_ai_model2_var = StringVar(self, value=self.app_config["selected_ai_model2"])
         self.ai_prompt2_var = StringVar(self, value=self.app_config["ai_prompt2"])
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        self.settings_frame = SettingsFrame(self, self.reporter_path_var, self.api_key_var, self.ai_models, self.selected_ai_model_var, self.ai_prompt_var, self.is_dual_model_var, self.ai2_include_profiler_output_var, self.selected_ai_model2_var, self.ai_prompt2_var)
+        self.settings_frame = SettingsFrame(self, self.reporter_path_var, self.api_key_var, self.ai_models, self.selected_ai_model_var, self.ai_prompt_var, self.is_dual_model_var, self.selected_ai_model2_var, self.ai_prompt2_var)
         self.settings_frame.configure(corner_radius=0)
         self.settings_frame.grid(row=0, column=0, sticky="nesw")
 
@@ -38,7 +37,6 @@ class SettingsPage(ctk.CTkFrame):
         self.app_config["ai_prompt"] = self.ai_prompt_var.get()
 
         self.app_config["dual_ai_model"] = self.is_dual_model_var.get()
-        self.app_config["ai2_include_profiler_output"] = self.ai2_include_profiler_output_var.get()
         self.app_config["selected_ai_model2"] = self.selected_ai_model2_var.get()
         self.app_config["ai_prompt2"] = self.ai_prompt2_var.get()
 
@@ -52,7 +50,6 @@ class SettingsPage(ctk.CTkFrame):
         self.ai_prompt_var.set(self.app_config["ai_prompt"])
 
         self.is_dual_model_var.set(self.app_config["dual_ai_model"])
-        self.ai2_include_profiler_output_var.set(self.app_config["ai2_include_profiler_output"])
         self.selected_ai_model2_var.set(self.app_config["selected_ai_model2"])
         self.ai_prompt2_var.set(self.app_config["ai_prompt2"])
 
@@ -60,7 +57,7 @@ class SettingsPage(ctk.CTkFrame):
 
 
 class SettingsFrame(ctk.CTkScrollableFrame):
-    def __init__(self, master, reporter_path_var, api_key_var, ai_models, selected_ai_model_var, ai_prompt_var, is_dual_model_var, ai2_include_profiler_output_var, selected_ai_model2_var, ai_prompt2_var):
+    def __init__(self, master, reporter_path_var, api_key_var, ai_models, selected_ai_model_var, ai_prompt_var, is_dual_model_var, selected_ai_model2_var, ai_prompt2_var):
         super().__init__(master)
 
         self.reporter_path_var = reporter_path_var
@@ -70,7 +67,6 @@ class SettingsFrame(ctk.CTkScrollableFrame):
         self.ai_prompt_var = ai_prompt_var
 
         self.is_dual_model_var = is_dual_model_var
-        self.ai2_include_profiler_output_var = ai2_include_profiler_output_var
         self.selected_ai_model2_var = selected_ai_model2_var
         self.ai_prompt2_var = ai_prompt2_var
 
@@ -95,8 +91,6 @@ class SettingsFrame(ctk.CTkScrollableFrame):
 
         self.ai2_model_selector = DropDownSelectorFrame(self, name="AI model 2:", values=self.ai_models, selected_var=self.selected_ai_model2_var)
 
-        self.toggle_ai2_inlcude_profiler_output = ctk.CTkCheckBox(self, text="Include profiler output for AI 2", variable=self.ai2_include_profiler_output_var, offvalue="0", onvalue="1")
-
         self.prompt2 = LongTextVarFrame(self, name="AI prompt 2:", text_var=self.ai_prompt2_var)
 
 
@@ -113,18 +107,15 @@ class SettingsFrame(ctk.CTkScrollableFrame):
             self.toggle_dual_model.grid_forget()
 
             self.ai2_model_selector.grid_forget()
-            self.toggle_ai2_inlcude_profiler_output.grid_forget()
             self.prompt2.grid_forget()
 
 
     def on_toggle_dual_model(self):
         if self.is_dual_model_var.get() == "1":
             self.ai2_model_selector.grid(row=7, column=0, sticky="we", padx=10, pady=5)
-            self.toggle_ai2_inlcude_profiler_output.grid(row=8, column=0, sticky="we", padx=11, pady=5)
             self.prompt2.grid(row=9, column=0, sticky="we", padx=10, pady=5)
         else:
             self.ai2_model_selector.grid_forget()
-            self.toggle_ai2_inlcude_profiler_output.grid_forget()
             self.prompt2.grid_forget()
 
 
