@@ -14,7 +14,7 @@ def select_file_dialog():
             )
             result = subprocess.run(
                 ["powershell", "-NoProfile", "-Command", ps_script],
-                capture_output=True, text=True
+                capture_output=True, text=True, shell="False"
             )
             p = result.stdout.strip()
             if p:

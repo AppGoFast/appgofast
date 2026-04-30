@@ -33,7 +33,7 @@ def run_reporter(
 
     result = subprocess.run(
         command,
-        shell=False,
+        shell="False",
         capture_output=True,
         text=True,
         check=False,
