@@ -212,3 +212,7 @@ __marimo__/
 .idea/
 
 secret.txt
+
+trace.nettrace
+trace.speedscope.json
+

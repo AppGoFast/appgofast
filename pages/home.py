@@ -7,14 +7,60 @@ class HomePage(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
+        self.profiler_var = ctk.StringVar(value="dotnet-trace")
+
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+
+        self.spacer35 = ctk.CTkFrame(self, width=36, height=36, fg_color="transparent")
+        self.spacer35.grid(row=0, column=0)
+
+        self.settings_button = ctk.CTkButton(self, text="⚙️", width=36, height=36, corner_radius=0, border_spacing=0, font=("", -25), fg_color="transparent", command=self.settings_button_event)
+        self.settings_button.grid(row=0, column=2)
+
+        self.segemented_button = ctk.CTkSegmentedButton(self, values=["dotnet-trace", "  dotTrace  "], width=200, height=32, fg_color="gray16", dynamic_resizing=False, command=self.on_profiler_select, variable=self.profiler_var)
+        self.segemented_button.grid(row=0, column=1)
+
+        self.dottrace_frame = DotTraceFrame(self)
+
+        self.dotnettrace_frame = DotNetTraceFrame(self)
+
+        self.dotnettrace_frame.grid(row=1, column=1, sticky="wnes")
+
+
+    def settings_button_event(self):
+        self.master.set_page("SettingsPage")
+
+    def on_profiler_select(self, val):
+        if val == "  dotTrace  ":
+            self.dotnettrace_frame.grid_forget()
+            self.dottrace_frame.grid(row=1, column=1, sticky="wnes")
+        else:
+            self.dottrace_frame.grid_forget()
+            self.dotnettrace_frame.grid(row=1, column=1, sticky="wnes")
+
+
+class DotNetTraceFrame(ctk.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure((1, 2), weight=1)
+        self.configure(fg_color="transparent")
+
+        self.label = ctk.CTkLabel(self, text="dotnet-trace ui is under construction", wraplength=550)
+        self.label.grid(row=1, column=0, sticky="s")
+
+
+class DotTraceFrame(ctk.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
+
         self.input_file_path = ""
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure((1, 2), weight=1)
-
-
-        self.settings_button = ctk.CTkButton(self, text="⚙️", width=35, corner_radius=0, border_spacing=0, font=("", -25), fg_color="transparent", command=self.settings_button_event)
-        self.settings_button.grid(row=0, column=0, sticky="e")
+        self.configure(fg_color="transparent")
 
         self.label = ctk.CTkLabel(self, text="Drag & drop your .dtp file\n\n or:", wraplength=550)
         self.label.grid(row=1, column=0, sticky="s")
@@ -27,9 +73,6 @@ class HomePage(ctk.CTkFrame):
         self.analyze_button = ctk.CTkButton(self, text="Analyze", command=self.analyze_button_event, state="disabled")
         self.analyze_button.grid(row=99, column=0, pady=10, sticky="s")
 
-
-    def settings_button_event(self):
-        self.master.set_page("SettingsPage")
 
     def open_select_file_dialog(self):
         path = select_file_dialog()
@@ -58,4 +101,4 @@ class HomePage(ctk.CTkFrame):
 
     def analyze_button_event(self):
         if self.input_file_path:
-            self.master.analyze(self.input_file_path)
+            self.master.master.get_dottrace_json(self.input_file_path)
