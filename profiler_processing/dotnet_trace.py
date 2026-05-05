@@ -1,3 +1,4 @@
+import os
 import subprocess
 import json
 import signal
@@ -23,26 +24,19 @@ def start_trace(pid, output="trace.nettrace"):
         "dotnet-trace", "collect",
         "--process-id", str(pid),
         "--output", output,
-    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        "--format", "Speedscope",
+    ],  creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return tracer
 
 def stop_trace(tracer):
     if tracer and tracer.poll() is None:
-        tracer.terminate()
-        tracer.wait()
-
-def convert_trace(nettrace_file, output="trace"):
-    result = subprocess.run([
-        "dotnet-trace", "convert",
-        "--format", "Speedscope",
-        "--output", output,
-        nettrace_file
-    ], capture_output=True, text=True)
-
-    if result.returncode != 0:
-        raise RuntimeError(f"Conversion failed: {result.stderr}")
-
-    return output
+        tracer.send_signal(signal.CTRL_BREAK_EVENT)
+        try:
+            tracer.wait()
+        except KeyboardInterrupt:
+            tracer.wait()
+    os.remove("trace.nettrace")
 
 def parse_speedscope(json_file, top_n=30):
     with open(json_file) as f:
@@ -68,21 +62,17 @@ def parse_speedscope(json_file, top_n=30):
 
     return summary
 
-def main():
-    processes = list_processes()
 
+
+if __name__ == "__main__":
+    processes = list_processes()
     print(f"{'PID':<8} {'Name':<40}")
     print("-" * 50)
     for p in processes:
         pid_str = str(p["pid"])
         name_str = p["name"][:40].ljust(40)
         print(f"{pid_str:<8} {name_str}")
-
     process = input("Enter the PID of the process to trace: ")
     trace = start_trace(process)
-    input("Press Enter to stop trace...")
+    input("Press Enter to stop trace")
     stop_trace(trace)
-    convert_trace(nettrace_file="trace.nettrace")
-
-if __name__ == "__main__":
-    main()
