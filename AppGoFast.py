@@ -29,8 +29,7 @@ class App(CTkDnD):
         self.grid_rowconfigure(0, weight=1)
 
         self.frames = {}
-        self.input_file_path = ""
-        self.last_profiler_result_path = ""
+        self.last_identified_bottlenecks = ""
 
         for Page in (HomePage, SettingsPage, LoadingPage, InputPage, OutputPage):
             frame = Page(self)
@@ -54,15 +53,13 @@ class App(CTkDnD):
         self.set_page("LoadingPage")
         threading.Thread( target=self.analysis_task, args=(profiling_data_json,), daemon=True).start()
 
-    def re_analyze(self, input): # need fix
-        print("Provided additional input: " + input)
+    def re_analyze(self, user_input):
         self.frames["LoadingPage"].set_info_text("Loading...")
         self.set_page("LoadingPage")
-        threading.Thread( target=self.analysis_task, args=(self.input_file_path, input,), daemon=True).start()
+        threading.Thread( target=self.re_analysis_task, args=(user_input,), daemon=True).start()
 
     def get_dottrace_json(self, input_file_path):
         if input_file_path:
-            self.input_file_path = input_file_path
             self.frames["LoadingPage"].set_info_text("Loading...")
             self.set_page("LoadingPage")
             threading.Thread( target=self.dottrace_to_json_task, args=(input_file_path,), daemon=True).start()
@@ -75,12 +72,7 @@ class App(CTkDnD):
                     self.frames["LoadingPage"].set_info_text("Reading profiling snapshot...")
                     output_json = Path(path).with_name("ai_input.json")
                     reporter_path = self.get_config()["reporter_path"]
-                    result_path = ""
-                    if self.last_profiler_result_path:
-                        result_path = self.last_profiler_result_path
-                    else:
-                        result_path = process_snapshot(path, output_json_path=output_json, reporter_path=reporter_path)
-                        self.last_profiler_result_path = result_path
+                    result_path = process_snapshot(path, output_json_path=output_json, reporter_path=reporter_path)
                     if os.path.exists(result_path):
                         with open(result_path) as f:
                             profiling_data = json.load(f)
@@ -91,14 +83,10 @@ class App(CTkDnD):
                     self.set_page("HomePage")
         else:
             try:
+                messagebox.showerror("AppGoFast", f"Your OS is not supported for this profiler.\nUsing DEMO profling data!")
                 self.frames["LoadingPage"].set_info_text("Reading profiling snapshot...")
                 time.sleep(1)
-                result_path = ""
-                if self.last_profiler_result_path:
-                        result_path = self.last_profiler_result_path
-                else:
-                    result_path = os.path.join(APP_PATH, "profiler_processing/ai_input.json")
-                    self.last_profiler_result_path = result_path
+                result_path = os.path.join(APP_PATH, "profiler_processing/ai_input.json")
                 if os.path.exists(result_path):
                     with open(result_path) as f:
                         profiling_data = json.load(f)
@@ -113,7 +101,7 @@ class App(CTkDnD):
         self.frames["InputPage"].set_text(json_string)
         self.set_page("InputPage")
 
-    def analysis_task(self, profiling_data_json, additional_input = ""):
+    def analysis_task(self, profiling_data_json):
         config = self.get_config()
         ai_model = config["selected_ai_model"]
         api_key = config["api_key"]
@@ -123,73 +111,48 @@ class App(CTkDnD):
         ai_model2 = config["selected_ai_model2"]
         ai_prompt2 = config["ai_prompt2"]
 
-        # use demo profiler output for linux
-        if sys.platform != "linux":
-            if path:
-                print(f"Processing:\n{path}")
-                try:
-                    # self.frames["LoadingPage"].set_info_text("Reading profiling snapshot...")
-                    # output_json = Path(path).with_name("ai_input.json")
-                    # reporter_path = self.get_config()["reporter_path"]
-                    # result_path = ""
-                    # if additional_input and self.last_profiler_result_path:
-                    #     result_path = self.last_profiler_result_path
-                    # else:
-                    #     result_path = process_snapshot(path, output_json_path=output_json, reporter_path=reporter_path)
-                    #     self.last_profiler_result_path = result_path
-                    ai_output = "Analysis failed..."
-                    # if os.path.exists(result_path):
-                    #     with open(result_path) as f:
-                    #         profiling_data = json.load(f)
-                    profiling_data = f"<data>\n{str(profiling_data_json)}\n</data>"
-                    ai_input = f"{ai_prompt}\n\n{profiling_data}"
-                    if dual_ai_model == '0' and additional_input:
-                        ai_input = f"{ai_input}\n\n<additional_user_input>\n{additional_input}\n</additional_user_input>"
-                    self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
-                    ai_output = analyze_with_gemini(ai_input, api_key, ai_model)
-                    if dual_ai_model == '1':
-                        self.frames["LoadingPage"].set_info_text("Writing suggestions...")
-                        ai_input2 = f"{ai_prompt2}\n\n<data>\n{ai_output}\n</data>"
-                        if additional_input:
-                            ai_input2 = f"{ai_input2}\n\n<additional_user_input>\n{additional_input}\n</additional_user_input>"
-                        ai_output = analyze_with_gemini(ai_input2, api_key, ai_model2)
-                    self.after(0, self.on_analysis_result, ai_output)
-                except Exception as e:
-                    messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
-                    self.set_page("HomePage")
-        else:
-            try:
-                # self.frames["LoadingPage"].set_info_text("Reading profiling snapshot...")
-                # time.sleep(1)
-                # result_path = ""
-                # if additional_input and self.last_profiler_result_path:
-                #         result_path = self.last_profiler_result_path
-                # else:
-                #     result_path = os.path.join(APP_PATH, "profiler_processing/ai_input.json")
-                #     self.last_profiler_result_path = result_path
-                ai_output = "Analysis failed..."
-                # if os.path.exists(result_path):
-                #     with open(result_path) as f:
-                #         profiling_data = json.load(f)
-                profiling_data = f"<data>\n{str(profiling_data_json)}\n</data>"
-                ai_input = f"{ai_prompt}\n\n{profiling_data}"
-                if dual_ai_model == '0' and additional_input:
-                    ai_input = f"{ai_input}\n\n<additional_user_input>\n{additional_input}\n</additional_user_input>"
+        try:
+            ai_output = "Analysis failed..."
+            if profiling_data_json:
+                ai_input = f"{ai_prompt}\n\n<data>\n{str(profiling_data_json)}\n</data>"
                 self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
                 ai_output = analyze_with_gemini(ai_input, api_key, ai_model)
                 if dual_ai_model == '1':
+                    self.last_identified_bottlenecks = ai_output
                     self.frames["LoadingPage"].set_info_text("Writing suggestions...")
                     ai_input2 = f"{ai_prompt2}\n\n<data>\n{ai_output}\n</data>"
-                    if additional_input:
-                        ai_input2 = f"{ai_input2}\n\n<additional_user_input>\n{additional_input}\n</additional_user_input>"
                     ai_output = analyze_with_gemini(ai_input2, api_key, ai_model2)
-                self.after(0, self.on_analysis_result, ai_output)
-            except Exception as e:
-                print(e)
-                messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
-                self.set_page("HomePage")
+                else:
+                    self.last_identified_bottlenecks = str(profiling_data_json)
+            self.after(0, self.on_analysis_result, ai_output)
+        except Exception as e:
+            messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
+            self.set_page("HomePage")
 
+    def re_analysis_task(self, user_input):
+        config = self.get_config()
+        ai_model = config["selected_ai_model"]
+        api_key = config["api_key"]
+        ai_prompt = config["ai_prompt"]
 
+        dual_ai_model = config["dual_ai_model"]
+        ai_model2 = config["selected_ai_model2"]
+        ai_prompt2 = config["ai_prompt2"]
+
+        try:
+            ai_output = "Analysis failed..."
+            if user_input:
+                self.frames["LoadingPage"].set_info_text("Adjusting suggestions...")
+                if dual_ai_model == '1':
+                    ai_input = f"{ai_prompt2}\n\n<data>\n{self.last_identified_bottlenecks}\n</data>\n\n<additional_user_input>\n{user_input}\n</additional_user_input>"
+                    ai_output = analyze_with_gemini(ai_input, api_key, ai_model2)
+                else:
+                    ai_input = f"{ai_prompt}\n\n<data>\n{self.last_identified_bottlenecks}\n</data>\n\n<additional_user_input>\n{user_input}\n</additional_user_input>"
+                    ai_output = analyze_with_gemini(ai_input, api_key, ai_model)
+            self.after(0, self.on_analysis_result, ai_output)
+        except Exception as e:
+            messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
+            self.set_page("OutputPage")
 
     def on_analysis_result(self, result):
         self.frames["LoadingPage"].set_info_text("Something went wrong.")
