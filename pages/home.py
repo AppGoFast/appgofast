@@ -8,7 +8,7 @@ class HomePage(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        self.profiler_var = ctk.StringVar(value="dotnet-trace")
+        self.profiler_var = ctk.StringVar(value="   dotTrace   ")
 
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -19,12 +19,14 @@ class HomePage(ctk.CTkFrame):
         self.settings_button = ctk.CTkButton(self, text="⚙", width=36, height=36, corner_radius=0, border_spacing=0, font=("", -24), fg_color="transparent", command=self.settings_button_event)
         self.settings_button.grid(row=0, column=2)
 
-        self.segemented_button = ctk.CTkSegmentedButton(self, values=["dotnet-trace", "  dotTrace  "], width=210, dynamic_resizing=False, command=self.on_profiler_select, variable=self.profiler_var)
+        self.segemented_button = ctk.CTkSegmentedButton(self, values=["dotnet-trace", "   dotTrace   ", " Select .dtp "], width=300, dynamic_resizing=False, command=self.on_profiler_select, variable=self.profiler_var)
         self.segemented_button.grid(row=0, column=1)
 
         self.dottrace_frame = DotTraceFrame(self)
 
         self.dotnettrace_frame = DotNetTraceFrame(self)
+
+        self.dtp_frame = DtpFrame(self)
 
         self.dotnettrace_frame.grid(row=1, column=1, sticky="wnes")
 
@@ -33,12 +35,52 @@ class HomePage(ctk.CTkFrame):
         self.master.set_page("SettingsPage")
 
     def on_profiler_select(self, val):
-        if val == "  dotTrace  ":
+        if val == "   dotTrace   ":
             self.dotnettrace_frame.grid_forget()
+            self.dtp_frame.grid_forget()
             self.dottrace_frame.grid(row=1, column=1, sticky="wnes")
-        else:
+        elif val == "dotnet-trace":
             self.dottrace_frame.grid_forget()
+            self.dtp_frame.grid_forget()
             self.dotnettrace_frame.grid(row=1, column=1, sticky="wnes")
+        else:
+            self.dotnettrace_frame.grid_forget()
+            self.dottrace_frame.grid_forget()
+            self.dtp_frame.grid(row=1, column=1, sticky="wnes")
+
+
+class DotTraceFrame(ctk.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.selected_pid_var = ctk.IntVar(value=0)
+
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.configure(fg_color="transparent")
+
+        self.label = ctk.CTkLabel(self, text="Processes, available to profile:")
+        self.label.grid(row=0, column=1, pady=(10, 0), sticky="wnes")
+
+        self.processes = ProcessesFrame(self, self.selected_pid_var, self.on_process_selected)
+        self.processes.grid(row=1, column=1, padx=30, sticky="wnes")
+
+        self.refresh_button = ctk.CTkButton(self, text="⟳ Refresh", width=0, fg_color="gray28", hover_color="gray20", command=self.refresh_processes)
+        self.refresh_button.grid(row=2, column=1, pady=10, sticky="n")
+
+        self.start_button = ctk.CTkButton(self, text="Start Tracing", command=self.start_profling, state="disabled")
+        self.start_button.grid(row=99, column=1, pady=10, sticky="s")
+
+
+    def start_profling(self):
+        self.master.master.start_dottrace(self.selected_pid_var.get()) # fix later
+
+    def refresh_processes(self):
+        for child in self.processes.winfo_children():
+            child.destroy()
+        self.processes.list_processes()
+
+    def on_process_selected(self):
+        self.start_button.configure(state="normal")
 
 
 class DotNetTraceFrame(ctk.CTkFrame):
@@ -75,7 +117,7 @@ class DotNetTraceFrame(ctk.CTkFrame):
         self.start_button.configure(state="normal")
 
 
-class DotTraceFrame(ctk.CTkFrame):
+class DtpFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 

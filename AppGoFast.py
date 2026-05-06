@@ -33,7 +33,7 @@ class App(CTkDnD):
 
         self.frames = {}
         self.last_identified_bottlenecks = ""
-        self.current_dotnet_trace = None
+        self.current_trace_process = None
 
         for Page in (HomePage, SettingsPage, LoadingPage, InputPage, OutputPage, TracingPage):
             frame = Page(self)
@@ -57,6 +57,38 @@ class App(CTkDnD):
         self.set_page("LoadingPage")
         threading.Thread( target=self.re_analysis_task, args=(user_input,), daemon=True).start()
 
+#region dotTrace
+
+    def start_dottrace(self, pid):
+        self.frames["TracingPage"].set_info_text(f"Tracing (PID: {pid}) ...")
+        self.frames["TracingPage"].toggle_dottrace(1)
+        self.set_page("TracingPage")
+        threading.Thread( target=self.dottrace_task, args=(pid,), daemon=True).start()
+
+    def stop_dottrace(self):
+        threading.Thread( target=self.finish_dottrace_task, daemon=True).start()
+
+    def dottrace_task(self, pid):
+        try:
+            self.current_trace_process = start_trace(pid) #star tracing here
+        except Exception as e:
+            messagebox.showerror("AppGoFast", f"Tracing failed:\n{e}")
+            self.set_page("HomePage")
+
+    def finish_dottrace_task(self):
+        try:
+            self.frames["TracingPage"].set_info_text("Stopping..")
+            stop_trace(self.current_trace_process) # stop tracing here
+            dtp_path = "path to dtp result"
+            self.current_trace_process = None
+            self.after(0, self.get_dottrace_json, dtp_path)
+        except Exception as e:
+            messagebox.showerror("AppGoFast", f"Tracing failed:\n{e}")
+            self.set_page("HomePage")
+
+#endregion
+#region dotnet_trace
+
     def get_dotnet_processes(self):
         try:
             return get_processes()
@@ -65,6 +97,7 @@ class App(CTkDnD):
 
     def start_dotnet_trace(self, pid):
         self.frames["TracingPage"].set_info_text(f"Tracing (PID: {pid}) ...")
+        self.frames["TracingPage"].toggle_dottrace(0)
         self.set_page("TracingPage")
         threading.Thread( target=self.dotnet_trace_task, args=(pid,), daemon=True).start()
 
@@ -73,7 +106,7 @@ class App(CTkDnD):
 
     def dotnet_trace_task(self, pid):
         try:
-            self.current_dotnet_trace = start_trace(pid) #, os.path.join(APP_PATH, "profiler_processing/trace.nettrace"))
+            self.current_trace_process = start_trace(pid) #, os.path.join(APP_PATH, "profiler_processing/trace.nettrace"))
         except Exception as e:
             messagebox.showerror("AppGoFast", f"Tracing failed:\n{e}")
             self.set_page("HomePage")
@@ -81,9 +114,10 @@ class App(CTkDnD):
     def finish_dotnet_trace_task(self):
         try:
             self.frames["TracingPage"].set_info_text("Stopping..")
-            stop_trace(self.current_dotnet_trace)
+            stop_trace(self.current_trace_process)
             self.frames["TracingPage"].set_info_text("Parsing output...")
             json_string = parse_speedscope("trace.speedscope.json")
+            self.current_trace_process = None
             self.after(0, self.on_dotnet_trace_finished, json_string)
         except Exception as e:
             messagebox.showerror("AppGoFast", f"Tracing failed:\n{e}")
@@ -94,7 +128,8 @@ class App(CTkDnD):
         self.frames["InputPage"].set_text(json.dumps(json_string, indent=4))
         self.set_page("InputPage")
 
-
+#endregion
+#region dotTrace to json
 
     def get_dottrace_json(self, input_file_path):
         if input_file_path:
@@ -105,12 +140,12 @@ class App(CTkDnD):
     def dottrace_to_json_task(self, input_file_path):
         if sys.platform != "linux":
             if input_file_path:
-                print(f"Processing:\n{path}")
+                print(f"Processing:\n{input_file_path}")
                 try:
                     self.frames["LoadingPage"].set_info_text("Reading profiling snapshot...")
-                    output_json = Path(path).with_name("ai_input.json")
+                    output_json = Path(input_file_path).with_name("ai_input.json")
                     reporter_path = self.get_config()["reporter_path"]
-                    result_path = process_snapshot(path, output_json_path=output_json, reporter_path=reporter_path)
+                    result_path = process_snapshot(input_file_path, output_json_path=output_json, reporter_path=reporter_path)
                     if os.path.exists(result_path):
                         with open(result_path) as f:
                             profiling_data = json.load(f)
@@ -138,6 +173,9 @@ class App(CTkDnD):
         self.frames["LoadingPage"].set_info_text("Loading...")
         self.frames["InputPage"].set_text(json_string)
         self.set_page("InputPage")
+
+#endregion
+#region AI analysis
 
     def analysis_task(self, profiling_data_json):
         config = self.get_config()
@@ -196,6 +234,8 @@ class App(CTkDnD):
         self.frames["LoadingPage"].set_info_text("Something went wrong.")
         self.frames["OutputPage"].set_result(result)
         self.set_page("OutputPage")
+
+#endregion
 
     def get_config(self):
         try:
