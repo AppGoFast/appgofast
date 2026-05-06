@@ -8,7 +8,9 @@ from pages.settings import SettingsPage
 from pages.loading import LoadingPage
 from pages.output import OutputPage
 from pages.input import InputPage
+from pages.tracing import TracingPage
 from profiler_processing.analyze_callstack import process_snapshot
+from profiler_processing.dotnet_trace import *
 from util.genai_analysis import analyze_with_gemini
 
 # Custom class to enable TkinterDnD on ctk
@@ -24,22 +26,19 @@ class App(CTkDnD):
 
         self.title("AppGoFast")
         ctk.set_appearance_mode("dark") # force darkmode
+        ctk.set_default_color_theme("green")
         self.minsize(600, 400)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         self.frames = {}
         self.last_identified_bottlenecks = ""
+        self.current_dotnet_trace = None
 
-        for Page in (HomePage, SettingsPage, LoadingPage, InputPage, OutputPage):
+        for Page in (HomePage, SettingsPage, LoadingPage, InputPage, OutputPage, TracingPage):
             frame = Page(self)
             self.frames[Page.__name__] = frame
             frame.grid(row=0, column=0, sticky="nesw")
-
-        result_path = os.path.join(APP_PATH, "profiler_processing/ai_input.json")
-        with open(result_path) as f:
-            profiling_data = json.load(f)
-        self.frames["InputPage"].set_text(json.dumps(profiling_data, indent=4))
 
         self.set_page("HomePage")
 
@@ -57,6 +56,45 @@ class App(CTkDnD):
         self.frames["LoadingPage"].set_info_text("Loading...")
         self.set_page("LoadingPage")
         threading.Thread( target=self.re_analysis_task, args=(user_input,), daemon=True).start()
+
+    def get_dotnet_processes(self):
+        try:
+            return get_processes()
+        except Exception as e:
+            messagebox.showerror("AppGoFast", f"Check if dotnet-trace is installed.\nFailed to get current dotnet processes:\n{e}")
+
+    def start_dotnet_trace(self, pid):
+        self.frames["TracingPage"].set_info_text(f"Tracing (PID: {pid}) ...")
+        self.set_page("TracingPage")
+        threading.Thread( target=self.dotnet_trace_task, args=(pid,), daemon=True).start()
+
+    def stop_dotnet_trace(self):
+        threading.Thread( target=self.finish_dotnet_trace_task, daemon=True).start()
+
+    def dotnet_trace_task(self, pid):
+        try:
+            self.current_dotnet_trace = start_trace(pid) #, os.path.join(APP_PATH, "profiler_processing/trace.nettrace"))
+        except Exception as e:
+            messagebox.showerror("AppGoFast", f"Tracing failed:\n{e}")
+            self.set_page("HomePage")
+
+    def finish_dotnet_trace_task(self):
+        try:
+            self.frames["TracingPage"].set_info_text("Stopping..")
+            stop_trace(self.current_dotnet_trace)
+            self.frames["TracingPage"].set_info_text("Parsing output...")
+            json_string = parse_speedscope("trace.speedscope.json")
+            self.after(0, self.on_dotnet_trace_finished, json_string)
+        except Exception as e:
+            messagebox.showerror("AppGoFast", f"Tracing failed:\n{e}")
+            self.set_page("HomePage")
+
+    def on_dotnet_trace_finished(self, json_string):
+        self.frames["TracingPage"].set_info_text("Tracing...")
+        self.frames["InputPage"].set_text(json.dumps(json_string, indent=4))
+        self.set_page("InputPage")
+
+
 
     def get_dottrace_json(self, input_file_path):
         if input_file_path:

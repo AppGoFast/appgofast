@@ -1,42 +1,53 @@
-import os
-import subprocess
-import json
-import signal
+import os, subprocess, json, signal, sys
 
-def list_processes():
+def get_processes():
     result = subprocess.run(
         ["dotnet-trace", "ps"],
         capture_output=True, text=True
     )
     processes = []
-    for line in result.stdout.splitlines():
-        parts = line.split()
-        if len(parts) < 2:
-            continue
-        processes.append({
-            "pid": int(parts[0]),
-            "name": parts[1]
-        })
+    lines = result.stdout.splitlines()
+    if len(lines) > 1: # so it doesnt crash when nothing is running
+        for line in lines:
+            parts = line.split()
+            if len(parts) < 2:
+                continue
+            processes.append({
+                "pid": int(parts[0]),
+                "name": parts[1]
+            })
     return processes
 
 def start_trace(pid, output="trace.nettrace"):
-    tracer = subprocess.Popen([
-        "dotnet-trace", "collect",
-        "--process-id", str(pid),
-        "--output", output,
-        "--format", "Speedscope",
-    ],  creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if sys.platform == "linux":
+            tracer = subprocess.Popen([
+                "dotnet-trace", "collect",
+                "--process-id", str(pid),
+                "--output", output,
+                "--format", "Speedscope"
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        tracer = subprocess.Popen([
+            "dotnet-trace", "collect",
+            "--process-id", str(pid),
+            "--output", output,
+            "--format", "Speedscope"
+        ],  creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return tracer
 
 def stop_trace(tracer):
     if tracer and tracer.poll() is None:
-        tracer.send_signal(signal.CTRL_BREAK_EVENT)
+        if sys.platform == "linux":
+            tracer.send_signal(signal.SIGINT)
+        else:
+            tracer.send_signal(signal.CTRL_BREAK_EVENT)
         try:
             tracer.wait()
         except KeyboardInterrupt:
             tracer.wait()
-    os.remove("trace.nettrace")
+    if os.path.exists("trace.nettrace"):
+        os.remove("trace.nettrace")
 
 def parse_speedscope(json_file, top_n=30):
     with open(json_file) as f:
@@ -63,9 +74,8 @@ def parse_speedscope(json_file, top_n=30):
     return summary
 
 
-
 if __name__ == "__main__":
-    processes = list_processes()
+    processes = get_processes()
     print(f"{'PID':<8} {'Name':<40}")
     print("-" * 50)
     for p in processes:
