@@ -1,4 +1,6 @@
 import os, subprocess, json, signal, sys
+from collections import defaultdict
+
 
 def get_processes():
     result = subprocess.run(
@@ -42,47 +44,84 @@ def stop_trace(tracer):
             tracer.send_signal(signal.SIGINT)
         else:
             tracer.send_signal(signal.CTRL_BREAK_EVENT)
-        try:
-            tracer.wait()
-        except KeyboardInterrupt:
-            tracer.wait()
+        tracer.wait()
     if os.path.exists("trace.nettrace"):
         os.remove("trace.nettrace")
 
-def parse_speedscope(json_file, top_n=30):
-    with open(json_file) as f:
+
+def parse_speedscope(json_file):
+    with open(json_file, 'r') as f:
         data = json.load(f)
 
+    # Namespaces and keywords to exclude to reduce noise
+    noise_filters = [
+        "System.",
+        "Microsoft.",
+        "JetBrains.",
+        "Hangfire.",
+        "WaitHandle",
+        "Monitor.Wait",
+        "ManualResetEvent",
+        "libcoreclr"
+    ]
+
+    frames = data['shared']['frames']
+    # Clean assembly prefixes (e.g., 'System.Private.CoreLib.il!') for readability
+    frame_names = [f.get('name', 'Unknown').split('!')[-1] for f in frames]
+
     summary = []
-    frames = data.get("shared", {}).get("frames", [])
 
-    for profile in data.get("profiles", []):
-        frame_counts = {}
+    for profile in data['profiles']:
+        stats = defaultdict(lambda: [0.0, 0.0, 0])
+        stack = []
 
-        for sample in profile.get("samples", []):
-            for frame_idx in sample:
-                name = frames[frame_idx].get("name", "?")
-                if not any(name.startswith(ns) for ns in ["System.", "Microsoft.", "Interop."]):
-                    frame_counts[name] = frame_counts.get(name, 0) + 1
+        for event in profile['events']:
+            f_idx = event['frame']
+            at = event['at']
 
-        top_frames = sorted(frame_counts.items(), key=lambda x: x[1], reverse=True)[:top_n]
-        summary.append({
-            "profile": profile.get("name", "unknown"),
-            "top_frames": top_frames
-        })
+            if event['type'] == 'O':
+                stack.append([at, 0.0])
+                stats[f_idx][2] += 1
+
+            elif event['type'] == 'C':
+                if not stack:
+                    continue
+
+                start_time, children_duration = stack.pop()
+                total_duration = at - start_time
+                stats[f_idx][0] += total_duration
+                own_duration = total_duration - children_duration
+                stats[f_idx][1] += own_duration
+
+                if stack:
+                    stack[-1][1] += total_duration
+
+        profile_summary = []
+        for idx, (total, own, count) in stats.items():
+            method_name = frame_names[idx]
+
+            # Skip known noise namespaces
+            if any(noise in method_name for noise in noise_filters):
+                if "UNMANAGED_CODE_TIME" in method_name and total > 500:
+                    pass
+                else:
+                    continue
+
+            # Skip if OwnTime is little
+            if own < 0.1 and total < 1.0:
+                continue
+
+            profile_summary.append({
+                "Method": method_name,
+                "TotalTime": round(total, 2),
+                "OwnTime": round(own, 2),
+                "Calls": count
+            })
+
+        # Sort TotalTime descending
+        profile_summary.sort(key=lambda x: x["TotalTime"], reverse=True)
+
+        if profile_summary:
+            summary.append(profile_summary)
 
     return summary
-
-
-if __name__ == "__main__":
-    processes = get_processes()
-    print(f"{'PID':<8} {'Name':<40}")
-    print("-" * 50)
-    for p in processes:
-        pid_str = str(p["pid"])
-        name_str = p["name"][:40].ljust(40)
-        print(f"{pid_str:<8} {name_str}")
-    process = input("Enter the PID of the process to trace: ")
-    trace = start_trace(process)
-    input("Press Enter to stop trace")
-    stop_trace(trace)
