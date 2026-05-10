@@ -34,5 +34,5 @@ class InputPage(ctk.CTkFrame):
         self.methods = methods
         self.textbox.configure(state="normal")
         self.textbox.delete("0.0", "end")
-        self.textbox.insert("0.0", f"{top_methods_md}\n\n{str(methods)}")
+        self.textbox.insert("0.0", f"{top_methods_md}")
         self.textbox.configure(state="disabled")

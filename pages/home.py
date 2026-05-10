@@ -174,9 +174,9 @@ class SelectOrDropFrame(ctk.CTkFrame):
         return file_url
 
     def on_file_drop(self, event):
-        self.input_file_path.set(self._convert_file_url_to_path(event.data))
+        self.file_path_var.set(self._convert_file_url_to_path(event.data))
         self.path_change_callback()
-        self.label.configure(text = self.input_file_path.get())
+        self.label.configure(text = self.file_path_var.get())
 
     def reset_label(self):
         self.label.configure(text = f"Drag & drop {self.file_extension} {self.what_is_it}\n or:")

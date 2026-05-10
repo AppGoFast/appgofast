@@ -16,14 +16,12 @@ class SettingsPage(ctk.CTkFrame):
         self.api_key_var = StringVar(self, value=self.app_config["api_key"])
         self.ai_models = self.app_config["ai_models"]
         self.selected_ai_model_var = StringVar(self, value=self.app_config["selected_ai_model"])
-
-        self.is_dual_model_var = StringVar(self, value=self.app_config["dual_ai_model"])
         self.selected_ai_model2_var = StringVar(self, value=self.app_config["selected_ai_model2"])
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        self.settings_frame = SettingsFrame(self, self.reporter_path_var, self.dottrace_path_var, self.snapshot_folder_var, self.api_key_var, self.ai_models, self.selected_ai_model_var, self.is_dual_model_var, self.selected_ai_model2_var)
+        self.settings_frame = SettingsFrame(self, self.reporter_path_var, self.dottrace_path_var, self.snapshot_folder_var, self.api_key_var, self.ai_models, self.selected_ai_model_var, self.selected_ai_model2_var)
         self.settings_frame.configure(corner_radius=0)
         self.settings_frame.grid(row=0, column=0, sticky="nesw")
 
@@ -37,8 +35,6 @@ class SettingsPage(ctk.CTkFrame):
         self.app_config["snapshot_folder"] = self.snapshot_folder_var.get()
         self.app_config["api_key"] = self.api_key_var.get()
         self.app_config["selected_ai_model"] = self.selected_ai_model_var.get()
-
-        self.app_config["dual_ai_model"] = self.is_dual_model_var.get()
         self.app_config["selected_ai_model2"] = self.selected_ai_model2_var.get()
 
         self.master.write_config(self.app_config)
@@ -50,15 +46,13 @@ class SettingsPage(ctk.CTkFrame):
         self.snapshot_folder_var.set(self.app_config["snapshot_folder"])
         self.api_key_var.set(self.app_config["api_key"])
         self.selected_ai_model_var.set(self.app_config["selected_ai_model"])
-
-        self.is_dual_model_var.set(self.app_config["dual_ai_model"])
         self.selected_ai_model2_var.set(self.app_config["selected_ai_model2"])
 
         self.master.set_page("HomePage")
 
 
 class SettingsFrame(ctk.CTkScrollableFrame):
-    def __init__(self, master, reporter_path_var, dottrace_path_var, snapshot_folder_var, api_key_var, ai_models, selected_ai_model_var, is_dual_model_var, selected_ai_model2_var):
+    def __init__(self, master, reporter_path_var, dottrace_path_var, snapshot_folder_var, api_key_var, ai_models, selected_ai_model_var, selected_ai_model2_var):
         super().__init__(master)
 
         self.reporter_path_var = reporter_path_var
@@ -67,8 +61,6 @@ class SettingsFrame(ctk.CTkScrollableFrame):
         self.api_key_var = api_key_var
         self.ai_models = ai_models
         self.selected_ai_model_var = selected_ai_model_var
-
-        self.is_dual_model_var = is_dual_model_var
         self.selected_ai_model2_var = selected_ai_model2_var
 
         self.toggle_advanced_settings_var = StringVar(self, value="0")
@@ -92,28 +84,17 @@ class SettingsFrame(ctk.CTkScrollableFrame):
 
         self.ai_model_selector = DropDownSelectorFrame(self, name="AI model:", values=self.ai_models, selected_var=self.selected_ai_model_var)
 
-        self.toggle_dual_model = ctk.CTkSwitch(self, text="Dual AI Model analysis", command=self.on_toggle_dual_model, variable=self.is_dual_model_var, onvalue="1", offvalue="0")
-
         self.ai2_model_selector = DropDownSelectorFrame(self, name="AI model 2:", values=self.ai_models, selected_var=self.selected_ai_model2_var)
 
 
     def on_toggle_advanced_settings(self):
         if self.toggle_advanced_settings_var.get() == "1":
             self.ai_model_selector.grid(row=6, column=0, sticky="we", padx=10, pady=5)
-            self.toggle_dual_model.grid(row=7, column=0, sticky="we", padx=11, pady=5)
+            self.ai2_model_selector.grid(row=7, column=0, sticky="we", padx=10, pady=5)
 
-            self.on_toggle_dual_model()
         else:
             self.ai_model_selector.grid_forget()
-            self.toggle_dual_model.grid_forget()
 
-            self.ai2_model_selector.grid_forget()
-
-
-    def on_toggle_dual_model(self):
-        if self.is_dual_model_var.get() == "1":
-            self.ai2_model_selector.grid(row=8, column=0, sticky="we", padx=10, pady=5)
-        else:
             self.ai2_model_selector.grid_forget()
 
 

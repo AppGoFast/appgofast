@@ -63,7 +63,7 @@ class App(CTkDnD):
         threading.Thread( target=self.dottrace_sampling_task, args=(pid,), daemon=True).start()
 
     def start_dottrace_tracing(self, target_path):
-        self.frames["TracingPage"].set_info_text(f"Tracing exe ...")
+        self.frames["TracingPage"].set_info_text(f"Tracing...")
         self.frames["TracingPage"].toggle_dottrace(1)
         self.set_page("TracingPage")
         threading.Thread( target=self.dottrace_tracing_task, args=(target_path,), daemon=True).start()
@@ -193,7 +193,6 @@ class App(CTkDnD):
             with open(prompt_1_path) as f:
                 base_prompt = f.read()
 
-        dual_ai_model = self.config["dual_ai_model"]
         ai_model2 = self.config["selected_ai_model2"]
         base_prompt2 = ""
         prompt_2_path = os.path.join(APP_PATH, "util/prompt_2.txt")
@@ -207,11 +206,10 @@ class App(CTkDnD):
                 self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
                 prompt = build_diagnostic_prompt(base_prompt, methods, self.top_n, data_block, scenario)
                 ai_output = analyze_with_gemini(prompt, api_key, ai_model)
-                if dual_ai_model == '1':
-                    self.last_identified_bottlenecks = ai_output
-                    self.frames["LoadingPage"].set_info_text("Writing suggestions...")
-                    prompt = build_investigation_prompt(base_prompt2, ai_output, scenario)
-                    ai_output = analyze_with_gemini(prompt, api_key, ai_model2)
+                self.last_identified_bottlenecks = ai_output
+                self.frames["LoadingPage"].set_info_text("Writing suggestions...")
+                prompt = build_investigation_prompt(base_prompt2, ai_output, scenario)
+                ai_output = analyze_with_gemini(prompt, api_key, ai_model2)
             self.after(0, self.on_analysis_result, ai_output)
         except Exception as e:
             messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")

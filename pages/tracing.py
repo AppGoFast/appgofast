@@ -19,7 +19,7 @@ class TracingPage(ctk.CTkFrame):
         self.progress.grid(row=1, column=0, sticky="n")
         self.progress.start()
 
-        self.stop_button = ctk.CTkButton(self, text="Finish Tracing", command=self.on_stop_button)
+        self.stop_button = ctk.CTkButton(self, text="Stop", command=self.on_stop_button)
         self.stop_button.grid(row=99, column=0, pady=10, sticky="s")
 
 
