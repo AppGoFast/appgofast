@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Patterns>
-    <Pattern PrintCallstacks="MethodNameOnly">.*DevExpress\.ExpressApp\..*</Pattern>
+    <Pattern PrintCallstacks="Full">.*DevExpress\.ExpressApp\..*</Pattern>
 </Patterns>
