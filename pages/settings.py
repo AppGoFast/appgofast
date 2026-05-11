@@ -1,6 +1,5 @@
 import customtkinter as ctk
-from tkinter import StringVar
-from util.select_file_dialog import select_file_dialog
+from tkinter import StringVar, filedialog
 from frames.BottomButtonsFrame import BottomButtonsFrame
 from frames.LongTextVarFrame import LongTextVarFrame
 
@@ -73,8 +72,8 @@ class SettingsFrame(ctk.CTkScrollableFrame):
         self.dottrace_path = PathSelectionFrame(self, name="dotTrace path:", path_var=self.dottrace_path_var)
         self.dottrace_path.grid(row=2, column=0, sticky="we", padx=10, pady=(10,5))
 
-        self.snapshot_folder = TextVarFrame(self, name="Snapshots folder:", text_var=self.snapshot_folder_var)
-        self.snapshot_folder.grid(row=3, column=0, sticky="we", padx=10, pady=5)
+        self.snapshot_folder = PathSelectionFrame(self, name="Snapshots folder:", path_var=self.snapshot_folder_var, is_folder=1)
+        self.snapshot_folder.grid(row=3, column=0, sticky="we", padx=10, pady=(10,5))
 
         self.api_key = TextVarFrame(self, name="Gemini API key:", text_var=self.api_key_var)
         self.api_key.grid(row=4, column=0, sticky="we", padx=10, pady=5)
@@ -99,9 +98,11 @@ class SettingsFrame(ctk.CTkScrollableFrame):
 
 
 class PathSelectionFrame(ctk.CTkFrame):
-    def __init__(self, master, name, path_var):
+    def __init__(self, master, name, path_var, file_extension=".exe", is_folder=0):
         super().__init__(master)
         self.path_var = path_var
+        self.file_extension = file_extension
+        self.is_folder = is_folder
 
         self.grid_columnconfigure((1, 2), weight=1)
 
@@ -115,7 +116,10 @@ class PathSelectionFrame(ctk.CTkFrame):
         self.button.grid(row=0, column=2, sticky="e")
 
     def open_select_file_dialog(self):
-        path = select_file_dialog()
+        if self.is_folder:
+            path = filedialog.askdirectory()
+        else:
+            path = filedialog.askopenfilename(filetypes=[("Files", f"*{self.file_extension}")])
         if path:
             self.path_var.set(path)
 
