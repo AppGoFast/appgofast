@@ -1,5 +1,4 @@
-import os, subprocess, json, signal, sys
-from collections import defaultdict
+import os, subprocess, signal, sys
 
 
 def get_processes():
@@ -9,7 +8,7 @@ def get_processes():
     )
     processes = []
     lines = result.stdout.splitlines()
-    if len(lines) > 1: # so it doesnt crash when nothing is running
+    if len(lines) > 1: # so it doesn't crash when nothing is running
         for line in lines:
             parts = line.split()
             if len(parts) < 2:
@@ -47,81 +46,3 @@ def stop_trace(tracer):
         tracer.wait()
     if os.path.exists("trace.nettrace"):
         os.remove("trace.nettrace")
-
-
-def parse_speedscope(json_file):
-    with open(json_file, 'r') as f:
-        data = json.load(f)
-
-    # Namespaces and keywords to exclude to reduce noise
-    noise_filters = [
-        "System.",
-        "Microsoft.",
-        "JetBrains.",
-        "Hangfire.",
-        "WaitHandle",
-        "Monitor.Wait",
-        "ManualResetEvent",
-        "libcoreclr"
-    ]
-
-    frames = data['shared']['frames']
-    # Clean assembly prefixes (e.g., 'System.Private.CoreLib.il!') for readability
-    frame_names = [f.get('name', 'Unknown').split('!')[-1] for f in frames]
-
-    summary = []
-
-    for profile in data['profiles']:
-        stats = defaultdict(lambda: [0.0, 0.0, 0])
-        stack = []
-
-        for event in profile['events']:
-            f_idx = event['frame']
-            at = event['at']
-
-            if event['type'] == 'O':
-                stack.append([at, 0.0])
-                stats[f_idx][2] += 1
-
-            elif event['type'] == 'C':
-                if not stack:
-                    continue
-
-                start_time, children_duration = stack.pop()
-                total_duration = at - start_time
-                stats[f_idx][0] += total_duration
-                own_duration = total_duration - children_duration
-                stats[f_idx][1] += own_duration
-
-                if stack:
-                    stack[-1][1] += total_duration
-
-        profile_summary = []
-        for idx, (total, own, count) in stats.items():
-            method_name = frame_names[idx]
-
-            # Skip known noise namespaces
-            if any(noise in method_name for noise in noise_filters):
-                if "UNMANAGED_CODE_TIME" in method_name and total > 500:
-                    pass
-                else:
-                    continue
-
-            # Skip if OwnTime is little
-            if own < 0.1 and total < 1.0:
-                continue
-
-            profile_summary.append({
-                "Method": method_name,
-                "TotalTime": round(total, 2),
-                "OwnTime": round(own, 2),
-                "Calls": count
-            })
-
-        # Sort TotalTime descending
-        profile_summary.sort(key=lambda x: x["TotalTime"], reverse=True)
-
-        if profile_summary:
-            summary.append(profile_summary)
-
-    return summary

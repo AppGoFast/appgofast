@@ -10,7 +10,7 @@ from pages.output import OutputPage
 from pages.input import InputPage
 from pages.tracing import TracingPage
 from profiler_processing.dottrace import *
-from profiler_processing.dottrace_parser import *
+from profiler_processing.parser import *
 from profiler_processing.dotnet_trace import *
 from util.genai_analysis import *
 from datetime import datetime
@@ -28,7 +28,7 @@ class App(CTkDnD):
         super().__init__()
 
         self.title("AppGoFast")
-        ctk.set_appearance_mode("dark") # force darkmode
+        ctk.set_appearance_mode("dark") # force dark mode
         ctk.set_default_color_theme("green")
         self.minsize(600, 400)
         self.grid_columnconfigure(0, weight=1)
@@ -129,16 +129,17 @@ class App(CTkDnD):
             self.frames["TracingPage"].set_info_text("Stopping..")
             stop_trace(self.current_trace_process)
             self.frames["TracingPage"].set_info_text("Parsing output...")
-            json_string = parse_speedscope("trace.speedscope.json")
+            methods = parse_speedscope("trace.speedscope.json")
+            top_methods_md = build_data_markdown(methods, self.top_n)
             self.current_trace_process = None
-            self.after(0, self.on_dotnet_trace_finished, json_string)
+            self.after(0, self.on_dotnet_trace_finished, top_methods_md, methods)
         except Exception as e:
             messagebox.showerror("AppGoFast", f"Tracing failed:\n{e}")
             self.set_page("HomePage")
 
-    def on_dotnet_trace_finished(self, json_string):
+    def on_dotnet_trace_finished(self, top_methods_md, methods):
         self.frames["TracingPage"].set_info_text("Tracing...")
-        self.frames["InputPage"].set_data(json.dumps(json_string, indent=4), "")
+        self.frames["InputPage"].set_data(top_methods_md, methods)
         self.set_page("InputPage")
 
 #endregion
@@ -159,7 +160,7 @@ class App(CTkDnD):
                 reporter_path = self.config["reporter_path"]
                 reporter_output = Path(snapshot_path).with_name("reporter_output.xml")
                 run_reporter(reporter_path, snapshot_path, reporter_output)
-                methods = parse_methods(reporter_output)
+                methods = parse_dottrace(reporter_output)
                 top_methods_md = build_data_markdown(methods, self.top_n)
                 self.after(0, self.on_parse_dottrace_result, methods, top_methods_md)
             except Exception as e:
