@@ -81,33 +81,49 @@ def parse_speedscope(json_file):
     return summary
 
 def parse_dottrace(xml_path: str) -> list[dict]:
-    methods = []
-    context = ET.iterparse(xml_path, events=("end",))
+     methods = []
+     xml_path = str(xml_path)
 
-    for event, elem in context:
-        if elem.tag == "Function":
-            fqn = elem.get("FQN", "")
-            try:
-                total_time = float(elem.get("TotalTime", "0"))
-                own_time = float(elem.get("OwnTime", "0"))
-                calls = int(elem.get("Calls", "0"))
-                if calls == 0:
-                    elem.clear()
-                    continue
-                time_per_call = round(total_time / calls, 4)
+     try:
+         context = ET.iterparse(xml_path, events=("end",))
+     except Exception as e:
+         return methods
 
-                methods.append({
-                    "method": fqn,
-                    "total_time_ms":total_time,
-                    "own_time_ms": own_time,
-                    "calls": calls,
-                    "time_per_call_ms": time_per_call,
-                })
-            except ValueError:
-                pass
-            elem.clear()
+     try:
+         for event, elem in context:
+             if elem.tag == "Function":
+                 fqn = elem.get("FQN", "")
+                 total_time_str = elem.get("TotalTime", "0")
+                 own_time_str = elem.get("OwnTime", "0")
 
-    return methods
+                 # Try to get calls from Samples (dotTrace reporter format) or Calls (dotnet-trace format)
+                 calls_str = elem.get("Samples") or elem.get("Calls", "0")
+
+                 try:
+                     total_time = float(total_time_str)
+                     own_time = float(own_time_str)
+                     calls = int(calls_str) if calls_str else 0
+
+                     if calls == 0:
+                         elem.clear()
+                         continue
+
+                     time_per_call = round(total_time / calls, 4)
+
+                     methods.append({
+                         "method": fqn,
+                         "total_time_ms": total_time,
+                         "own_time_ms": own_time,
+                         "calls": calls,
+                         "time_per_call_ms": time_per_call,
+                     })
+                 except ValueError:
+                     pass
+                 elem.clear()
+     except Exception:
+         pass
+
+     return methods
 
 def build_data_markdown(methods: list[dict], top_n: int) -> str:
     by_total = sorted(methods, key=lambda x: x["total_time_ms"], reverse=True)[:top_n]

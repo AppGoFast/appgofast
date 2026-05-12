@@ -37,6 +37,7 @@ def run_reporter(reporter_path: str, snapshot_path: str, output_file: str, patte
         reporter_path, "report",
         snapshot_path,
         f"--pattern={pattern_file}",
+        "--overwrite",
         f"--save-to={output_file}"
     ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
