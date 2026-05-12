@@ -1,7 +1,7 @@
 import customtkinter as ctk
+from tkinter import filedialog
 from tkinterdnd2 import DND_ALL
 from urllib.parse import urlparse, unquote
-from util.select_file_dialog import select_file_dialog
 
 
 class HomePage(ctk.CTkFrame):
@@ -154,7 +154,7 @@ class SelectOrDropFrame(ctk.CTkFrame):
 
 
     def open_select_file_dialog(self):
-        path = select_file_dialog()
+        path = filedialog.askopenfilename(filetypes=[("Files", f"*{self.file_extension}")])
         if path:
             self.file_path_var.set(path)
             self.path_change_callback()
@@ -233,7 +233,7 @@ class ProcessListFrame(ctk.CTkScrollableFrame):
                 self.process_button.grid(row=i, column=0, sticky="we")
                 i = i+1
         else:
-            self.label = ctk.CTkLabel(self, text="    No running processes found!", height=215)
-            self.label.grid(row=0, column=0, sticky="wnes")
+            self.label = ctk.CTkLabel(self, text="No running processes found!")
+            self.label.grid(row=0, column=0, padx=10, sticky="wnes")
 
 
