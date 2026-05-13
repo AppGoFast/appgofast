@@ -9,10 +9,10 @@ from pages.loading import LoadingPage
 from pages.output import OutputPage
 from pages.input import InputPage
 from pages.tracing import TracingPage
-from profiler_processing.dottrace import *
-from profiler_processing.parser import *
-from profiler_processing.dotnet_trace import *
-from util.genai_analysis import *
+from profilers.dottrace import *
+from profilers.parser import *
+from profilers.dotnet_trace import *
+from services.genai_analysis import *
 from datetime import datetime
 from pathlib import Path
 
@@ -53,6 +53,20 @@ class App(CTkDnD):
     def set_page(self, page):
         frame = self.frames[page]
         frame.tkraise()
+
+    def start_profiling(self, selected_pid, exe_path, dtp_path, profiler_choice):
+        try:
+            if profiler_choice == "dotnet-trace":
+                self.start_dotnet_trace(selected_pid)
+            elif selected_pid > 0:
+                self.start_dottrace_sampling(selected_pid)
+            elif exe_path != "":
+                self.start_dottrace_tracing(exe_path)
+            else:
+                self.parse_dottrace(dtp_path)
+        except Exception as e:
+            messagebox.showerror("AppGoFast", f"Failed to start profiling:\n{e}")
+            self.set_page("HomePage")
 
 #region dotTrace
 
@@ -119,7 +133,7 @@ class App(CTkDnD):
 
     def dotnet_trace_task(self, pid):
         try:
-            self.current_trace_process = start_trace(pid) #, os.path.join(APP_PATH, "profiler_processing/trace.nettrace"))
+            self.current_trace_process = start_trace(pid) #, os.path.join(APP_PATH, "profilers/trace.nettrace"))
         except Exception as e:
             messagebox.showerror("AppGoFast", f"Tracing failed:\n{e}")
             self.set_page("HomePage")
@@ -189,14 +203,14 @@ class App(CTkDnD):
         ai_model = self.config["selected_ai_model"]
         api_key = self.config["api_key"]
         base_prompt = ""
-        prompt_1_path = os.path.join(APP_PATH, "util/prompt_1.txt")
+        prompt_1_path = os.path.join(APP_PATH, "services/prompt_1.txt")
         if os.path.exists(prompt_1_path):
             with open(prompt_1_path) as f:
                 base_prompt = f.read()
 
         ai_model2 = self.config["selected_ai_model2"]
         base_prompt2 = ""
-        prompt_2_path = os.path.join(APP_PATH, "util/prompt_2.txt")
+        prompt_2_path = os.path.join(APP_PATH, "services/prompt_2.txt")
         if os.path.exists(prompt_2_path):
             with open(prompt_2_path) as f:
                 base_prompt2 = f.read()

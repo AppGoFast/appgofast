@@ -67,14 +67,12 @@ class HomePage(ctk.CTkFrame):
         self.enable_start_button()
 
     def start_profling(self):
-        if self.master.profiler_var.get() == "dotnet-trace":
-            self.master.start_dotnet_trace(self.selected_pid_var.get())
-        elif self.selected_pid_var.get() > 0:
-            self.master.start_dottrace_sampling(self.selected_pid_var.get())
-        elif self.exe_path_var.get() != "":
-            self.master.start_dottrace_tracing(self.exe_path_var.get())
-        else:
-            self.master.parse_dottrace(self.dtp_path_var.get())
+        self.master.start_profiling(
+            selected_pid=self.selected_pid_var.get(),
+            exe_path=self.exe_path_var.get(),
+            dtp_path=self.dtp_path_var.get(),
+            profiler_choice=self.master.profiler_var.get()
+        )
 
 
 class DotTraceFrame(ctk.CTkFrame):
