@@ -12,7 +12,7 @@ from pages.tracing import TracingPage
 from profilers.dottrace import *
 from profilers.parser import *
 from profilers.dotnet_trace import *
-from services.genai_analysis import *
+from ai.genai_analysis import *
 from datetime import datetime
 from pathlib import Path
 
@@ -203,14 +203,14 @@ class App(CTkDnD):
         ai_model = self.config["selected_ai_model"]
         api_key = self.config["api_key"]
         base_prompt = ""
-        prompt_1_path = os.path.join(APP_PATH, "services/prompt_1.txt")
+        prompt_1_path = os.path.join(APP_PATH, "ai/prompt_1.txt")
         if os.path.exists(prompt_1_path):
             with open(prompt_1_path) as f:
                 base_prompt = f.read()
 
         ai_model2 = self.config["selected_ai_model2"]
         base_prompt2 = ""
-        prompt_2_path = os.path.join(APP_PATH, "services/prompt_2.txt")
+        prompt_2_path = os.path.join(APP_PATH, "ai/prompt_2.txt")
         if os.path.exists(prompt_2_path):
             with open(prompt_2_path) as f:
                 base_prompt2 = f.read()
