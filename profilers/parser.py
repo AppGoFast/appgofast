@@ -73,8 +73,6 @@ def parse_speedscope(json_file):
                 "time_per_call_ms": time_per_call,
             })
 
-        profile_summary.sort(key=lambda x: x["total_time_ms"], reverse=True)
-
         if profile_summary:
             summary.extend(profile_summary)
 
