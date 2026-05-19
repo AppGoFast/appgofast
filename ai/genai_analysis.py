@@ -13,7 +13,7 @@ def build_diagnostic_prompt(base_prompt: str, methods: list[dict], top_n: int, d
     prompt = prompt.replace("{scenario}", scenario)
     prompt = prompt.replace("{total_methods}", str(len(methods)))
     prompt = prompt.replace("{top_n}", str(top_n))
-    prompt += f"\n\n<data>\n{data_block}\n</data>"
+    prompt = prompt.replace("{data_block}", data_block)
     return prompt
 
 def build_investigation_prompt(base_prompt: str, bottlenecks: str, scenario: str = "unknown") -> str:

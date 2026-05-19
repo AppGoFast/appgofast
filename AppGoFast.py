@@ -220,6 +220,7 @@ class App(CTkDnD):
             if data_block:
                 self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
                 prompt = build_diagnostic_prompt(base_prompt, methods, self.top_n, data_block, scenario)
+                print(prompt)
                 ai_output = analyze_with_gemini(prompt, api_key, ai_model)
                 self.last_identified_bottlenecks = ai_output
                 self.frames["LoadingPage"].set_info_text("Writing suggestions...")
@@ -272,7 +273,7 @@ def validate_config():
             return True
         print(f"\033[1;31mConfig incomplete: Missing required keys: {example_config.keys() - config.keys()}. Delete config.json to generate a new default or add missing key values.\033[0m")
     except Exception as e:
-        print(f"Your paths are probably fucked ¯\\_(ツ)_/¯: {e}")
+        print(f"{e}")
     return False
 
 if __name__ == "__main__":

@@ -56,3 +56,7 @@ Total methods in snapshot: {total_methods}
 Methods shown in this analysis: {top_n}
 Framework: DevExpress XAF WinForms + XPO
 </context>
+
+<data>
+{data_block}
+</data>
