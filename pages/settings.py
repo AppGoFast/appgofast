@@ -1,7 +1,6 @@
 import customtkinter as ctk
 from tkinter import StringVar, filedialog
 from frames.BottomButtonsFrame import BottomButtonsFrame
-from frames.LongTextVarFrame import LongTextVarFrame
 
 
 class SettingsPage(ctk.CTkFrame):

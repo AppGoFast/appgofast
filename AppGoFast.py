@@ -70,13 +70,24 @@ class App(CTkDnD):
 
 #region dotTrace
 
+    def dottrace_path_check(self):
+        if self.config["dottrace_path"] == "" or self.config["reporter_path"] == "":
+            messagebox.showerror("AppGoFast", f"dotTrace or Reporter path missing!")
+            self.set_page("SettingsPage")
+            return False
+        return True
+
     def start_dottrace_sampling(self, pid):
+        if not self.dottrace_path_check():
+            return
         self.frames["TracingPage"].set_info_text(f"Sampling (PID: {pid}) ...")
         self.frames["TracingPage"].toggle_dottrace(1)
         self.set_page("TracingPage")
         threading.Thread( target=self.dottrace_sampling_task, args=(pid,), daemon=True).start()
 
     def start_dottrace_tracing(self, target_path):
+        if not self.dottrace_path_check():
+            return
         self.frames["TracingPage"].set_info_text(f"Tracing...")
         self.frames["TracingPage"].toggle_dottrace(1)
         self.set_page("TracingPage")
@@ -157,9 +168,11 @@ class App(CTkDnD):
         self.set_page("InputPage")
 
 #endregion
-#region dotTrace to xml
+#region dotTrace parsing
 
     def parse_dottrace(self, snapshot_path):
+        if not self.dottrace_path_check():
+            return
         self.frames["LoadingPage"].set_info_text("Loading...")
         self.set_page("LoadingPage")
         threading.Thread( target=self.parse_dottrace_task, args=(snapshot_path,), daemon=True).start()
@@ -215,7 +228,7 @@ class App(CTkDnD):
                 base_prompt2 = f.read()
         except Exception as e:
             messagebox.showerror("AppGoFast", f"Failed to read prompts:\n{e}")
-            self.set_page("HomePage")
+            self.set_page("InputPage")
 
         try:
             ai_output = "Analysis failed..."
@@ -230,7 +243,7 @@ class App(CTkDnD):
             self.after(0, self.on_analysis_result, ai_output)
         except Exception as e:
             messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
-            self.set_page("HomePage")
+            self.set_page("InputPage")
 
     def re_analysis_task(self, user_input): # change to chat
         try:
@@ -272,7 +285,12 @@ def validate_config():
             config = json.load(f)
         if example_config.keys() == config.keys():
             return True
-        print(f"\033[1;31mConfig incomplete: Missing required keys: {example_config.keys() - config.keys()}. Delete config.json to generate a new default or add missing key values.\033[0m")
+        print(f"\033[1;31mInvalid config schema!\nDelete config.json to generate a new defaul? [y/N]\033[0m")
+        choice = input()
+        if choice.lower() == "y":
+            shutil.copyfile(os.path.join(APP_PATH, "config.json.example"), os.path.join(APP_PATH, "config.json"))
+            print("Default configuration applied.")
+            return True
     except Exception as e:
         print(f"{e}")
     return False
