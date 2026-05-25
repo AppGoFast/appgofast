@@ -208,10 +208,10 @@ class App(CTkDnD):
 
         try:
             prompt_1_path = os.path.join(APP_PATH, "ai/prompt_1.txt")
-            with open(prompt_1_path) as f:
+            with open(prompt_1_path, encoding="utf-8") as f:
                 base_prompt = f.read()
             prompt_2_path = os.path.join(APP_PATH, "ai/prompt_2.txt")
-            with open(prompt_2_path) as f:
+            with open(prompt_2_path, encoding="utf-8") as f:
                 base_prompt2 = f.read()
         except Exception as e:
             messagebox.showerror("AppGoFast", f"Failed to read prompts:\n{e}")
