@@ -203,24 +203,25 @@ class App(CTkDnD):
         ai_model = self.config["selected_ai_model"]
         api_key = self.config["api_key"]
         base_prompt = ""
-        prompt_1_path = os.path.join(APP_PATH, "ai/prompt_1.txt")
-        if os.path.exists(prompt_1_path):
-            with open(prompt_1_path) as f:
-                base_prompt = f.read()
-
         ai_model2 = self.config["selected_ai_model2"]
         base_prompt2 = ""
-        prompt_2_path = os.path.join(APP_PATH, "ai/prompt_2.txt")
-        if os.path.exists(prompt_2_path):
+
+        try:
+            prompt_1_path = os.path.join(APP_PATH, "ai/prompt_1.txt")
+            with open(prompt_1_path) as f:
+                base_prompt = f.read()
+            prompt_2_path = os.path.join(APP_PATH, "ai/prompt_2.txt")
             with open(prompt_2_path) as f:
                 base_prompt2 = f.read()
+        except Exception as e:
+            messagebox.showerror("AppGoFast", f"Failed to read prompts:\n{e}")
+            self.set_page("HomePage")
 
         try:
             ai_output = "Analysis failed..."
             if data_block:
                 self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
                 prompt = build_diagnostic_prompt(base_prompt, methods, self.top_n, data_block, scenario)
-                print(prompt)
                 ai_output = analyze_with_gemini(prompt, api_key, ai_model)
                 self.last_identified_bottlenecks = ai_output
                 self.frames["LoadingPage"].set_info_text("Writing suggestions...")
