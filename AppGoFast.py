@@ -40,7 +40,11 @@ class App(CTkDnD):
         self.top_n = 30
         self.config = self.get_config()
         self.snapshot_path = ""
-        self.profiler_var = ctk.StringVar(self, value="   dotTrace   ") # ["dotnet-trace", "   dotTrace   "]
+
+        if sys.platform == "linux":
+            self.profiler_var = ctk.StringVar(self, value="dotnet-trace") # ["dotnet-trace", "   dotTrace   "]
+        else:
+            self.profiler_var = ctk.StringVar(self, value="   dotTrace   ")
 
         for Page in (HomePage, SettingsPage, LoadingPage, InputPage, OutputPage, TracingPage):
             frame = Page(self)

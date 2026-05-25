@@ -1,3 +1,4 @@
+import sys
 import customtkinter as ctk
 from tkinter import filedialog
 from tkinterdnd2 import DND_ALL
@@ -21,13 +22,17 @@ class HomePage(ctk.CTkFrame):
         self.settings_button.grid(row=0, column=2)
 
         self.segemented_button = ctk.CTkSegmentedButton(self, values=["dotnet-trace", "   dotTrace   "], width=240, dynamic_resizing=False, command=self.on_profiler_select, variable=master.profiler_var)
-        self.segemented_button.grid(row=0, column=1)
 
         self.dotnettrace_frame = DotNetTraceFrame(self, self.selected_pid_var, master.get_dotnet_processes, self.on_pid_changed)
 
         self.dottrace_frame = DotTraceFrame(self, self.selected_pid_var, self.exe_path_var, self.dtp_path_var, self.on_exe_path_changed, self.on_dtp_path_changed, master.get_dotnet_processes, self.on_pid_changed)
 
-        self.dottrace_frame.grid(row=1, column=1, sticky="wnes")
+        if sys.platform != "linux":
+            self.segemented_button.grid(row=0, column=1)
+            self.dottrace_frame.grid(row=1, column=1, sticky="wnes")
+        else:
+            self.dotnettrace_frame.grid(row=1, column=1, sticky="wnes")
+
 
         self.start_button = ctk.CTkButton(self, text="▶︎ Start", command=self.start_profling, state="disabled")
         self.start_button.grid(row=99, column=1, pady=10, sticky="s")

@@ -1,3 +1,4 @@
+import sys
 import customtkinter as ctk
 from tkinter import StringVar, filedialog
 from frames.BottomButtonsFrame import BottomButtonsFrame
@@ -65,17 +66,18 @@ class SettingsFrame(ctk.CTkScrollableFrame):
 
         self.grid_columnconfigure(0, weight=1)
 
-        self.reporter_path = PathSelectionFrame(self, name="Reporter path:", path_var=self.reporter_path_var)
-        self.reporter_path.grid(row=1, column=0, sticky="we", padx=10, pady=(10,5))
+        if sys.platform != "linux":
+            self.reporter_path = PathSelectionFrame(self, name="Reporter path:", path_var=self.reporter_path_var)
+            self.reporter_path.grid(row=1, column=0, sticky="we", padx=10, pady=(10,5))
 
-        self.dottrace_path = PathSelectionFrame(self, name="dotTrace path:", path_var=self.dottrace_path_var)
-        self.dottrace_path.grid(row=2, column=0, sticky="we", padx=10, pady=(10,5))
+            self.dottrace_path = PathSelectionFrame(self, name="dotTrace path:", path_var=self.dottrace_path_var)
+            self.dottrace_path.grid(row=2, column=0, sticky="we", padx=10, pady=(10,5))
 
-        self.snapshot_folder = PathSelectionFrame(self, name="Snapshots folder:", path_var=self.snapshot_folder_var, is_folder=1)
-        self.snapshot_folder.grid(row=3, column=0, sticky="we", padx=10, pady=(10,5))
+            self.snapshot_folder = PathSelectionFrame(self, name="Snapshots folder:", path_var=self.snapshot_folder_var, is_folder=1)
+            self.snapshot_folder.grid(row=3, column=0, sticky="we", padx=10, pady=(10,5))
 
         self.api_key = TextVarFrame(self, name="Gemini API key:", text_var=self.api_key_var)
-        self.api_key.grid(row=4, column=0, sticky="we", padx=10, pady=5)
+        self.api_key.grid(row=4, column=0, sticky="we", padx=10, pady=(10,5))
 
         self.toggle_advanced_settings = ctk.CTkSwitch(self, text="Advanced settings",command=self.on_toggle_advanced_settings, variable=self.toggle_advanced_settings_var, offvalue="0", onvalue="1")
         self.toggle_advanced_settings.grid(row=5, column=0, sticky="we", padx=11, pady=5)
