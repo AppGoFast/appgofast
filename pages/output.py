@@ -37,14 +37,14 @@ class InputFrame(ctk.CTkFrame):
         self.configure(fg_color="transparent")
 
 
-        self.label = ctk.CTkLabel(self, text="Your input:")
+        self.label = ctk.CTkLabel(self, text="Your input:", width=70)
         self.label.grid(row=0, column=0, padx=(1, 6), sticky="wn")
 
         self.entry = ctk.CTkTextbox(self, height=55)
         self.entry.grid(row=0, column=1, sticky="we")
         self.entry.bind("<KeyRelease>", self.on_entry_change)
 
-        self.button = ctk.CTkButton(self, text="Re-analyze", width=20, command=self.on_reanalyze, state="disabled")
+        self.button = ctk.CTkButton(self, text="Send", width=70, command=self.on_reanalyze, state="disabled")
         self.button.grid(row=0, column=2, padx=(5, 0), pady=1, sticky="wn")
 
 

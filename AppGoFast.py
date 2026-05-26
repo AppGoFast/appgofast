@@ -235,7 +235,7 @@ class App(CTkDnD):
             self.set_page("InputPage")
 
         try:
-            ai_output = "Analysis failed..."
+            ai_output = "Unexpected error."
             if data_block:
                 self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
                 prompt = build_diagnostic_prompt(base_prompt, methods, self.top_n, data_block, scenario)
@@ -243,15 +243,18 @@ class App(CTkDnD):
                 self.last_identified_bottlenecks = ai_output
                 self.frames["LoadingPage"].set_info_text("Writing suggestions...")
                 prompt = build_investigation_prompt(base_prompt2, ai_output, scenario)
-                ai_output = analyze_with_gemini(prompt, api_key, ai_model2)
+                self.analysis_chat = ChatWithGemini(api_key, ai_model2)
+                ai_output = self.analysis_chat.inquire(prompt)
             self.after(0, self.on_analysis_result, ai_output)
         except Exception as e:
             messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")
             self.set_page("InputPage")
 
-    def re_analysis_task(self, user_input): # change to chat
+    def re_analysis_task(self, user_input):
         try:
-            ai_output = "Not implemented."
+            self.frames["LoadingPage"].set_info_text("Writing suggestions...")
+            ai_output = "Unexpected error."
+            ai_output = self.analysis_chat.inquire(user_input)
             self.after(0, self.on_analysis_result, ai_output)
         except Exception as e:
             messagebox.showerror("AppGoFast", f"Analysis failed:\n{e}")

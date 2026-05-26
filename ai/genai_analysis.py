@@ -1,12 +1,21 @@
 from google import genai
 
 
-def analyze_with_gemini(prompt: str, api_key: str, model: str = "gemini-3.1-flash-lite-preview"):
+def analyze_with_gemini(prompt: str, api_key: str, model: str = "gemini-3.5-flash"):
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
         model=model, contents=prompt
     )
     return response.text
+
+class ChatWithGemini:
+    def __init__(self, api_key: str, model: str = "gemini-3.5-flash"):
+        self.client = genai.Client(api_key=api_key)
+        self.chat = self.client.chats.create(model=model)
+
+    def inquire(self, message: str):
+        response = self.chat.send_message(message)
+        return response.text
 
 def build_diagnostic_prompt(base_prompt: str, methods: list[dict], top_n: int, data_block: str, scenario: str = "unknown") -> str:
     prompt = base_prompt
