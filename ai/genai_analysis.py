@@ -17,7 +17,7 @@ class ChatWithGemini:
         response = self.chat.send_message(message)
         return response.text
 
-def build_diagnostic_prompt(base_prompt: str, methods: list[dict], top_n: int, data_block: str, scenario: str = "unknown") -> str:
+def build_bottleneck_analysis_prompt(base_prompt: str, methods: list[dict], top_n: int, data_block: str, scenario: str = "unknown") -> str:
     prompt = base_prompt
     prompt = prompt.replace("{scenario}", scenario)
     prompt = prompt.replace("{total_methods}", str(len(methods)))

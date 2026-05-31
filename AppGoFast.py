@@ -224,10 +224,10 @@ class App(CTkDnD):
         base_prompt2 = ""
 
         try:
-            prompt_1_path = os.path.join(APP_PATH, "ai/prompt_1.txt")
+            prompt_1_path = os.path.join(APP_PATH, "ai/bottleneck_analysis_prompt.txt")
             with open(prompt_1_path, encoding="utf-8") as f:
                 base_prompt = f.read()
-            prompt_2_path = os.path.join(APP_PATH, "ai/prompt_2.txt")
+            prompt_2_path = os.path.join(APP_PATH, "ai/investigation_prompt.txt")
             with open(prompt_2_path, encoding="utf-8") as f:
                 base_prompt2 = f.read()
         except Exception as e:
@@ -238,7 +238,7 @@ class App(CTkDnD):
             ai_output = "Unexpected error."
             if data_block:
                 self.frames["LoadingPage"].set_info_text("Identifying bottlenecks...")
-                prompt = build_diagnostic_prompt(base_prompt, methods, self.top_n, data_block, scenario)
+                prompt = build_bottleneck_analysis_prompt(base_prompt, methods, self.top_n, data_block, scenario)
                 ai_output = analyze_with_gemini(prompt, api_key, ai_model)
                 self.last_identified_bottlenecks = ai_output
                 self.frames["LoadingPage"].set_info_text("Writing suggestions...")

@@ -1,6 +1,5 @@
 customtkinter
-tkinterdnd2
+tkinterdnd2-universal
 google-genai
 ctk-markdown
 Pillow
-pyinstaller
